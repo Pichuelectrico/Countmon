@@ -121,7 +121,8 @@ class CentralWidget(QtWidgets.QDialog, CLASS_DIALOG):
         # ── Quick-save overlay ─────────────────────────────────────────────
         self.quick_save_frame = QtWidgets.QFrame(self.graphicsView)
         self.quick_save_frame.setStyleSheet(
-            "QFrame { background: #4caf50; color: #FFF; font-weight: bold }")
+            "QFrame { background: rgba(90,122,74,220); color: #F5F0E8;"
+            " font-weight: bold; border-radius: 8px; }")
         self.quick_save_frame.setLayout(QtWidgets.QHBoxLayout())
         self.quick_save_frame.layout().addWidget(QtWidgets.QLabel(self.tr('Saving...')))
         self.quick_save_frame.setGeometry(3, 3, 100, 35)
@@ -130,7 +131,8 @@ class CentralWidget(QtWidgets.QDialog, CLASS_DIALOG):
         # ── Mode badge overlay — both tags always visible ──────────────────
         self.mode_badge = QtWidgets.QFrame(self.graphicsView)
         self.mode_badge.setStyleSheet(
-            "QFrame { background: rgba(30,30,30,200); border-radius: 5px; }")
+            "QFrame { background: rgba(37,43,30,220); border-radius: 8px;"
+            " border: 1px solid rgba(61,74,50,180); }")
         lay = QtWidgets.QHBoxLayout(self.mode_badge)
         lay.setContentsMargins(6, 3, 6, 3)
         lay.setSpacing(6)
@@ -166,9 +168,9 @@ class CentralWidget(QtWidgets.QDialog, CLASS_DIALOG):
         return sc
 
     def _update_mode_badge(self, mode):
-        ACTIVE_COUNTER  = "font-size: 11px; font-weight: bold; color: #66bb6a;"   # green
-        ACTIVE_REVIEWER = "font-size: 11px; font-weight: bold; color: #42a5f5;"   # blue
-        INACTIVE        = "font-size: 11px; font-weight: bold; color: rgba(160,160,160,130);"
+        ACTIVE_COUNTER  = "font-size: 11px; font-weight: bold; color: #A8C880;"   # verde fresco
+        ACTIVE_REVIEWER = "font-size: 11px; font-weight: bold; color: #88C8A0;"   # verde-agua
+        INACTIVE        = "font-size: 11px; font-weight: bold; color: rgba(180,170,150,130);"
 
         if mode == 'counter':
             self._lbl_counter.setStyleSheet(ACTIVE_COUNTER)

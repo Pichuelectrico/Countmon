@@ -27,35 +27,40 @@ from PyQt6 import QtCore, QtGui
 
 def NavyModePalette():
     p = QtGui.QPalette()
-    navy_dark = QtGui.QColor(12, 20, 45)
-    navy_mid = QtGui.QColor(20, 35, 75)
-    navy_btn = QtGui.QColor(28, 48, 100)
-    highlight = QtGui.QColor(42, 130, 218)
-    white = QtCore.Qt.GlobalColor.white
+    # Levels bien separados: window → base → button tienen ~25-30 pts de diferencia
+    window    = QtGui.QColor(22,  38,  72)   # navy medio — no tan oscuro
+    base      = QtGui.QColor(30,  52,  95)   # panel/inputs — claramente más claro
+    alt_base  = QtGui.QColor(26,  44,  82)   # filas alternas
+    btn       = QtGui.QColor(42,  68, 118)   # botones — nivel superior visible
+    highlight = QtGui.QColor(91, 160, 235)   # azul vivo para selección / foco
+    text      = QtGui.QColor(220, 230, 255)  # blanco con tinte azul suave
+    dim_text  = QtGui.QColor(120, 148, 195)  # texto deshabilitado / placeholder
+    border    = QtGui.QColor(58,  84, 138)   # borde visible entre paneles
 
-    p.setColor(QtGui.QPalette.ColorRole.Window, navy_dark)
-    p.setColor(QtGui.QPalette.ColorRole.WindowText, white)
-    p.setColor(QtGui.QPalette.ColorRole.Base, navy_mid)
-    p.setColor(QtGui.QPalette.ColorRole.AlternateBase, QtGui.QColor(16, 28, 60))
-    p.setColor(QtGui.QPalette.ColorRole.PlaceholderText, QtGui.QColor(140, 160, 200))
-    p.setColor(QtGui.QPalette.ColorRole.Text, white)
-    p.setColor(QtGui.QPalette.ColorRole.Button, navy_btn)
-    p.setColor(QtGui.QPalette.ColorRole.ButtonText, white)
-    p.setColor(QtGui.QPalette.ColorRole.BrightText, QtCore.Qt.GlobalColor.red)
-    p.setColor(QtGui.QPalette.ColorRole.Highlight, highlight)
-    p.setColor(QtGui.QPalette.ColorRole.HighlightedText, white)
-    p.setColor(QtGui.QPalette.ColorRole.Link, highlight)
-    p.setColor(QtGui.QPalette.ColorRole.Dark, QtGui.QColor(8, 14, 32))
-    p.setColor(QtGui.QPalette.ColorRole.Shadow, QtGui.QColor(4, 8, 18))
+    p.setColor(QtGui.QPalette.ColorRole.Window,           window)
+    p.setColor(QtGui.QPalette.ColorRole.WindowText,       text)
+    p.setColor(QtGui.QPalette.ColorRole.Base,             base)
+    p.setColor(QtGui.QPalette.ColorRole.AlternateBase,    alt_base)
+    p.setColor(QtGui.QPalette.ColorRole.PlaceholderText,  dim_text)
+    p.setColor(QtGui.QPalette.ColorRole.Text,             text)
+    p.setColor(QtGui.QPalette.ColorRole.Button,           btn)
+    p.setColor(QtGui.QPalette.ColorRole.ButtonText,       text)
+    p.setColor(QtGui.QPalette.ColorRole.BrightText,       QtGui.QColor(255, 120, 100))
+    p.setColor(QtGui.QPalette.ColorRole.Highlight,        highlight)
+    p.setColor(QtGui.QPalette.ColorRole.HighlightedText,  QtGui.QColor(10, 20, 50))
+    p.setColor(QtGui.QPalette.ColorRole.Link,             highlight)
+    p.setColor(QtGui.QPalette.ColorRole.Mid,              border)
+    p.setColor(QtGui.QPalette.ColorRole.Dark,             QtGui.QColor(14, 26, 52))
+    p.setColor(QtGui.QPalette.ColorRole.Shadow,           QtGui.QColor(8,  15, 32))
+    p.setColor(QtGui.QPalette.ColorRole.Midlight,         QtGui.QColor(52, 78, 130))
+    p.setColor(QtGui.QPalette.ColorRole.ToolTipBase,      btn)
+    p.setColor(QtGui.QPalette.ColorRole.ToolTipText,      text)
 
-    p.setColor(QtGui.QPalette.ColorGroup.Disabled, QtGui.QPalette.ColorRole.WindowText, QtGui.QColor(80, 100, 140))
-    p.setColor(QtGui.QPalette.ColorGroup.Disabled, QtGui.QPalette.ColorRole.Text, QtGui.QColor(80, 100, 140))
-    p.setColor(QtGui.QPalette.ColorGroup.Disabled, QtGui.QPalette.ColorRole.ButtonText, QtGui.QColor(80, 100, 140))
-    p.setColor(QtGui.QPalette.ColorGroup.Disabled, QtGui.QPalette.ColorRole.Highlight, QtGui.QColor(30, 50, 90))
-    p.setColor(QtGui.QPalette.ColorGroup.Disabled, QtGui.QPalette.ColorRole.HighlightedText, QtGui.QColor(80, 100, 140))
-
-    p.setColor(QtGui.QPalette.ColorRole.ToolTipBase, navy_btn)
-    p.setColor(QtGui.QPalette.ColorRole.ToolTipText, white)
+    p.setColor(QtGui.QPalette.ColorGroup.Disabled, QtGui.QPalette.ColorRole.WindowText, dim_text)
+    p.setColor(QtGui.QPalette.ColorGroup.Disabled, QtGui.QPalette.ColorRole.Text,       dim_text)
+    p.setColor(QtGui.QPalette.ColorGroup.Disabled, QtGui.QPalette.ColorRole.ButtonText, dim_text)
+    p.setColor(QtGui.QPalette.ColorGroup.Disabled, QtGui.QPalette.ColorRole.Highlight,  QtGui.QColor(40, 68, 110))
+    p.setColor(QtGui.QPalette.ColorGroup.Disabled, QtGui.QPalette.ColorRole.HighlightedText, dim_text)
     return p
 
 
@@ -92,6 +97,84 @@ def NatureGreenPalette():
     p.setColor(QtGui.QPalette.ColorGroup.Disabled, QtGui.QPalette.ColorRole.ButtonText, dim_text)
     p.setColor(QtGui.QPalette.ColorGroup.Disabled, QtGui.QPalette.ColorRole.Highlight,  QtGui.QColor(60, 90, 60))
     p.setColor(QtGui.QPalette.ColorGroup.Disabled, QtGui.QPalette.ColorRole.HighlightedText, dim_text)
+    return p
+
+
+def BiophilicLightPalette():
+    p = QtGui.QPalette()
+    cream        = QtGui.QColor(245, 240, 232)   # #F5F0E8 lino cálido
+    panel        = QtGui.QColor(237, 232, 220)   # #EDE8DC arena suave
+    alt_panel    = QtGui.QColor(228, 222, 208)   # ligeramente más oscuro
+    btn          = QtGui.QColor(220, 213, 198)   # botones arena
+    moss         = QtGui.QColor(90,  122,  74)   # #5A7A4A musgo bosque
+    leaf         = QtGui.QColor(125, 171,  92)   # #7DAB5C verde hoja
+    text_dark    = QtGui.QColor(44,  36,  22)    # #2C2416 marrón cálido
+    text_mid     = QtGui.QColor(107,  92,  62)   # #6B5C3E tierra media
+    border_sand  = QtGui.QColor(200, 186, 160)   # #C8BAA0 arena borde
+
+    p.setColor(QtGui.QPalette.ColorRole.Window,           cream)
+    p.setColor(QtGui.QPalette.ColorRole.WindowText,       text_dark)
+    p.setColor(QtGui.QPalette.ColorRole.Base,             panel)
+    p.setColor(QtGui.QPalette.ColorRole.AlternateBase,    alt_panel)
+    p.setColor(QtGui.QPalette.ColorRole.PlaceholderText,  text_mid)
+    p.setColor(QtGui.QPalette.ColorRole.Text,             text_dark)
+    p.setColor(QtGui.QPalette.ColorRole.Button,           btn)
+    p.setColor(QtGui.QPalette.ColorRole.ButtonText,       text_dark)
+    p.setColor(QtGui.QPalette.ColorRole.BrightText,       QtGui.QColor(180, 60, 40))
+    p.setColor(QtGui.QPalette.ColorRole.Highlight,        leaf)
+    p.setColor(QtGui.QPalette.ColorRole.HighlightedText,  QtGui.QColor(255, 255, 255))
+    p.setColor(QtGui.QPalette.ColorRole.Link,             moss)
+    p.setColor(QtGui.QPalette.ColorRole.Dark,             border_sand)
+    p.setColor(QtGui.QPalette.ColorRole.Shadow,           QtGui.QColor(160, 148, 128))
+    p.setColor(QtGui.QPalette.ColorRole.Mid,              QtGui.QColor(210, 202, 186))
+    p.setColor(QtGui.QPalette.ColorRole.Midlight,         QtGui.QColor(248, 244, 238))
+    p.setColor(QtGui.QPalette.ColorRole.ToolTipBase,      QtGui.QColor(60, 50, 30))
+    p.setColor(QtGui.QPalette.ColorRole.ToolTipText,      QtGui.QColor(230, 220, 200))
+
+    p.setColor(QtGui.QPalette.ColorGroup.Disabled, QtGui.QPalette.ColorRole.WindowText, text_mid)
+    p.setColor(QtGui.QPalette.ColorGroup.Disabled, QtGui.QPalette.ColorRole.Text,       text_mid)
+    p.setColor(QtGui.QPalette.ColorGroup.Disabled, QtGui.QPalette.ColorRole.ButtonText, text_mid)
+    p.setColor(QtGui.QPalette.ColorGroup.Disabled, QtGui.QPalette.ColorRole.Highlight,  QtGui.QColor(180, 200, 160))
+    p.setColor(QtGui.QPalette.ColorGroup.Disabled, QtGui.QPalette.ColorRole.HighlightedText, text_mid)
+    return p
+
+
+def BiophilicDarkPalette():
+    p = QtGui.QPalette()
+    forest_night = QtGui.QColor(30,  35,  24)    # #1E2318 bosque noche
+    earth_shadow = QtGui.QColor(37,  43,  30)    # #252B1E tierra sombra
+    alt_dark     = QtGui.QColor(28,  34,  22)    # filas alternas
+    btn_dark     = QtGui.QColor(48,  56,  38)    # botones oscuros
+    leaf         = QtGui.QColor(125, 171,  92)   # #7DAB5C verde hoja
+    fresh        = QtGui.QColor(168, 200, 128)   # #A8C880 verde fresco
+    linen        = QtGui.QColor(232, 224, 208)   # #E8E0D0 lino claro
+    muted_linen  = QtGui.QColor(160, 150, 130)   # texto secundario
+    moss_border  = QtGui.QColor(61,  74,  50)    # #3D4A32 musgo oscuro
+
+    p.setColor(QtGui.QPalette.ColorRole.Window,           forest_night)
+    p.setColor(QtGui.QPalette.ColorRole.WindowText,       linen)
+    p.setColor(QtGui.QPalette.ColorRole.Base,             earth_shadow)
+    p.setColor(QtGui.QPalette.ColorRole.AlternateBase,    alt_dark)
+    p.setColor(QtGui.QPalette.ColorRole.PlaceholderText,  muted_linen)
+    p.setColor(QtGui.QPalette.ColorRole.Text,             linen)
+    p.setColor(QtGui.QPalette.ColorRole.Button,           btn_dark)
+    p.setColor(QtGui.QPalette.ColorRole.ButtonText,       linen)
+    p.setColor(QtGui.QPalette.ColorRole.BrightText,       QtGui.QColor(255, 120, 100))
+    p.setColor(QtGui.QPalette.ColorRole.Highlight,        leaf)
+    p.setColor(QtGui.QPalette.ColorRole.HighlightedText,  QtGui.QColor(20, 28, 14))
+    p.setColor(QtGui.QPalette.ColorRole.Link,             fresh)
+    p.setColor(QtGui.QPalette.ColorRole.Dark,             QtGui.QColor(18, 22, 14))
+    p.setColor(QtGui.QPalette.ColorRole.Shadow,           QtGui.QColor(10, 12, 8))
+    p.setColor(QtGui.QPalette.ColorRole.Mid,              QtGui.QColor(42, 50, 34))
+    p.setColor(QtGui.QPalette.ColorRole.Midlight,         QtGui.QColor(50, 60, 40))
+    p.setColor(QtGui.QPalette.ColorRole.ToolTipBase,      btn_dark)
+    p.setColor(QtGui.QPalette.ColorRole.ToolTipText,      linen)
+
+    p.setColor(QtGui.QPalette.ColorGroup.Disabled, QtGui.QPalette.ColorRole.WindowText, muted_linen)
+    p.setColor(QtGui.QPalette.ColorGroup.Disabled, QtGui.QPalette.ColorRole.Text,       muted_linen)
+    p.setColor(QtGui.QPalette.ColorGroup.Disabled, QtGui.QPalette.ColorRole.ButtonText, muted_linen)
+    p.setColor(QtGui.QPalette.ColorGroup.Disabled, QtGui.QPalette.ColorRole.Highlight,  QtGui.QColor(60, 80, 45))
+    p.setColor(QtGui.QPalette.ColorGroup.Disabled, QtGui.QPalette.ColorRole.HighlightedText, muted_linen)
     return p
 
 

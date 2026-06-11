@@ -25,7 +25,7 @@
 # --------------------------------------------------------------------------
 import os
 import sys
-from PyQt6 import QtWidgets, QtCore
+from PyQt6 import QtWidgets, QtCore, QtGui
 from ddg import ExceptionHandler, MainWindow
 from ddg.main_window import apply_theme
 
@@ -39,6 +39,22 @@ if __name__ == "__main__":
         QtCore.QDir.addSearchPath("i18n", "./i18n/")
 
     app.setStyle("fusion")
+
+    # Modern font — prefer Inter, fall back to platform system fonts
+    _font_families = ["Inter", "Segoe UI", "SF Pro Text", "Helvetica Neue", "Arial"]
+    _font = QtGui.QFont()
+    for _family in _font_families:
+        _font.setFamily(_family)
+        if (
+            QtGui.QFontInfo(_font)
+            .family()
+            .lower()
+            .startswith(_family.split()[0].lower())
+        ):
+            break
+    _font.setPointSize(12)
+    _font.setHintingPreference(QtGui.QFont.HintingPreference.PreferFullHinting)
+    app.setFont(_font)
 
     settings = QtCore.QSettings("Countmon", "Countmon")
     apply_theme(settings.value("theme", "system"), app)
@@ -62,6 +78,12 @@ if __name__ == "__main__":
         if screen.geometry().width() < s.geometry().width():
             screen = s
     main.windowHandle().setScreen(screen)
-    main.resize(int(screen.geometry().width()), int(screen.geometry().height() * 0.85))
+    w = int(screen.geometry().width() * 0.70)
+    h = int(screen.geometry().height() * 0.77)
+    main.resize(w, h)
+    main.move(
+        screen.geometry().x() + (screen.geometry().width() - w) // 2,
+        screen.geometry().y() + ((screen.geometry().height() - h) // 2) - 25,
+    )
 
     sys.exit(app.exec())

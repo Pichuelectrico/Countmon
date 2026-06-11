@@ -86,10 +86,13 @@ class PointWidget(QtWidgets.QWidget, WIDGET):
         hh.setMinimumSectionSize(1)
         hh.setStretchLastSection(False)
         hh.setSectionResizeMode(COL_NAME, QtWidgets.QHeaderView.ResizeMode.Stretch)
-        self.tableWidgetClasses.setColumnWidth(COL_NUM,   26)
-        self.tableWidgetClasses.setColumnWidth(COL_COLOR, 28)
-        self.tableWidgetClasses.setColumnWidth(COL_MOVE,  46)
-        self.tableWidgetClasses.verticalHeader().setVisible(False)
+        self.tableWidgetClasses.setColumnWidth(COL_NUM,   28)
+        self.tableWidgetClasses.setColumnWidth(COL_COLOR, 44)
+        self.tableWidgetClasses.setColumnWidth(COL_MOVE,  48)
+        vh = self.tableWidgetClasses.verticalHeader()
+        vh.setVisible(False)
+        vh.setSectionResizeMode(QtWidgets.QHeaderView.ResizeMode.ResizeToContents)
+        self.tableWidgetClasses.setWordWrap(True)
         self.tableWidgetClasses.setSelectionMode(
             QtWidgets.QAbstractItemView.SelectionMode.SingleSelection)
         self.tableWidgetClasses.setSelectionBehavior(
@@ -135,12 +138,32 @@ class PointWidget(QtWidgets.QWidget, WIDGET):
     # ── Class list ─────────────────────────────────────────────────────────
 
     def add_class(self):
-        class_name, ok = QtWidgets.QInputDialog.getText(
-            self, self.tr('New Class'), self.tr('Class Name'))
-        if ok and class_name.strip():
-            self.canvas.add_class(class_name.strip())
-            self.display_classes()
-            self.display_count_tree()
+        dlg = QtWidgets.QDialog(self)
+        dlg.setWindowTitle(self.tr('New Class'))
+        dlg.setMinimumWidth(300)
+        layout = QtWidgets.QVBoxLayout(dlg)
+        layout.setSpacing(12)
+        layout.setContentsMargins(16, 16, 16, 16)
+        layout.addWidget(QtWidgets.QLabel(self.tr('Class Name')))
+        line_edit = QtWidgets.QLineEdit(dlg)
+        layout.addWidget(line_edit)
+        btn_row = QtWidgets.QHBoxLayout()
+        btn_row.setSpacing(8)
+        btn_cancel = QtWidgets.QPushButton(self.tr('Cancel'))
+        btn_ok = QtWidgets.QPushButton(self.tr('Add'))
+        btn_ok.setDefault(True)
+        btn_cancel.clicked.connect(dlg.reject)
+        btn_ok.clicked.connect(dlg.accept)
+        btn_row.addStretch()
+        btn_row.addWidget(btn_cancel)
+        btn_row.addWidget(btn_ok)
+        layout.addLayout(btn_row)
+        if dlg.exec() == QtWidgets.QDialog.DialogCode.Accepted:
+            class_name = line_edit.text().strip()
+            if class_name:
+                self.canvas.add_class(class_name)
+                self.display_classes()
+                self.display_count_tree()
 
     def remove_class(self):
         indexes = self.tableWidgetClasses.selectedIndexes()

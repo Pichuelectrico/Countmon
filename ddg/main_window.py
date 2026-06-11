@@ -26,43 +26,37 @@ from ddg.central_widget import CentralWidget
 from PyQt6 import QtWidgets, QtCore, QtGui
 from ddg.about_dialog import AboutDialog
 from ddg import __version__
-from ddg.dark_mode_palette import DarkModePalette, NavyModePalette, NatureGreenPalette
+from ddg.dark_mode_palette import DarkModePalette, NavyModePalette, NatureGreenPalette, BiophilicLightPalette
+from ddg.biophilic_theme import BIOPHILIC_BASE_QSS
 
 
 def apply_theme(name, app=None):
     """Apply a named theme to the application palette."""
     if app is None:
         app = QtWidgets.QApplication.instance()
-    tooltip_dark = "QToolTip { color: #ffffff; background-color: #000000; border: 0px; padding: 2px}"
-    tooltip_navy = "QToolTip { color: #ffffff; background-color: #0c1430; border: 0px; padding: 2px}"
-    tooltip_light = ""
 
     if name == 'dark':
         app.setPalette(DarkModePalette())
-        app.setStyleSheet(tooltip_dark)
     elif name == 'navy':
         app.setPalette(NavyModePalette())
-        app.setStyleSheet(tooltip_navy)
     elif name == 'nature':
         app.setPalette(NatureGreenPalette())
-        app.setStyleSheet(
-            "QToolTip { color: #dcf0dc; background-color: #2a3a2e; border: 0px; padding: 2px}")
     elif name == 'light':
-        app.setPalette(QtGui.QPalette())
-        app.setStyleSheet(tooltip_light)
+        app.setPalette(BiophilicLightPalette())
     else:
-        # system: restore palette and let OS decide
-        app.setPalette(QtGui.QPalette())
-        app.setStyleSheet(tooltip_light)
+        # system: pick a well-defined palette that matches the OS preference
         if app.styleHints().colorScheme() == QtCore.Qt.ColorScheme.Dark:
             app.setPalette(DarkModePalette())
-            app.setStyleSheet(tooltip_dark)
+        else:
+            app.setPalette(BiophilicLightPalette())
+
+    app.setStyleSheet(BIOPHILIC_BASE_QSS)
 
 
 class MainWindow(QtWidgets.QMainWindow):
     def __init__(self):
         QtWidgets.QMainWindow.__init__(self)
-        self.setWindowTitle('Countmon [v {}]'.format(__version__))
+        self.setWindowTitle('Countmon')
         self.setWindowIcon(QtGui.QIcon("icons:logo_countmon.png"))
         self.setCentralWidget(CentralWidget())
         self.about_dialog = AboutDialog(self)
@@ -118,6 +112,11 @@ class MainWindow(QtWidgets.QMainWindow):
         self.menuBar().addSeparator()
         self.menuBar().addAction(self.tr('About'), self.about_dialog.show)
 
+        # ── Auto-update when OS switches light ↔ dark ──────────────────────
+        QtWidgets.QApplication.instance().styleHints().colorSchemeChanged.connect(
+            self._on_os_color_scheme_changed
+        )
+
         # ── Panel toggle buttons in menu bar right corner ──────────────────
         corner = QtWidgets.QWidget()
         corner_layout = QtWidgets.QHBoxLayout(corner)
@@ -126,14 +125,14 @@ class MainWindow(QtWidgets.QMainWindow):
 
         btn_css = (
             "QPushButton {"
-            "  border: 1px solid #888; border-radius: 3px;"
-            "  padding: 2px 8px; font-size: 12px;"
+            "  border: 1px solid #888; border-radius: 6px;"
+            "  padding: 3px 12px; font-size: 11px;"
             "  min-width: 28px;"
             "}"
             "QPushButton:checked {"
-            "  background: rgba(42,130,218,160); border-color: #2a82da;"
+            "  background: rgba(90,122,74,180); border-color: #5A7A4A;"
             "}"
-            "QPushButton:hover { background: rgba(128,128,128,60); }"
+            "QPushButton:hover { background: rgba(90,122,74,60); }"
         )
 
         self._btn_left_panel = QtWidgets.QPushButton('◀  ' + self.tr('Left Panel'))
@@ -164,6 +163,12 @@ class MainWindow(QtWidgets.QMainWindow):
         settings = QtCore.QSettings("Countmon", "Countmon")
         settings.setValue('theme', name)
         apply_theme(name)
+
+    def _on_os_color_scheme_changed(self, _scheme):
+        """Re-apply the theme when the OS switches light ↔ dark (only if 'system' is active)."""
+        settings = QtCore.QSettings("Countmon", "Countmon")
+        if settings.value('theme', 'system') == 'system':
+            apply_theme('system')
 
     def closeEvent(self, event):
         if self.centralWidget().canvas.dirty_data_check():
