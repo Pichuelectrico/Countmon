@@ -25,6 +25,9 @@
 from PyQt6 import QtWidgets, QtCore
 
 
+PAN_STEP = 40
+
+
 class CentralGraphicsView(QtWidgets.QGraphicsView):
     add_point = QtCore.pyqtSignal(QtCore.QPointF)
     drop_complete = QtCore.pyqtSignal(list)
@@ -34,6 +37,7 @@ class CentralGraphicsView(QtWidgets.QGraphicsView):
     toggle_points = QtCore.pyqtSignal()
     toggle_grid = QtCore.pyqtSignal()
     switch_class = QtCore.pyqtSignal(int)
+    mode_changed = QtCore.pyqtSignal(str)
 
     def __init__(self, parent=None):
         QtWidgets.QGraphicsView.__init__(self, parent)
@@ -43,7 +47,17 @@ class CentralGraphicsView(QtWidgets.QGraphicsView):
         self.ctrl = False
         self.alt = False
         self.delay = 0
+        self.mode = 'reviewer'
         self.setViewportUpdateMode(QtWidgets.QGraphicsView.ViewportUpdateMode.FullViewportUpdate)
+        self.setCursor(QtCore.Qt.CursorShape.ArrowCursor)
+
+    def set_mode(self, mode):
+        self.mode = mode
+        if mode == 'counter':
+            self.setCursor(QtCore.Qt.CursorShape.CrossCursor)
+        else:
+            self.setCursor(QtCore.Qt.CursorShape.ArrowCursor)
+        self.mode_changed.emit(mode)
 
     def enterEvent(self, event):
         self.setFocus()
@@ -64,39 +78,56 @@ class CentralGraphicsView(QtWidgets.QGraphicsView):
         self.setSceneRect(self.scene().itemsBoundingRect())
 
     def keyPressEvent(self, event):
-        if event.key() == QtCore.Qt.Key.Key_Alt:
+        key = event.key()
+        if key == QtCore.Qt.Key.Key_Alt:
             self.alt = True
-        elif event.key() == QtCore.Qt.Key.Key_Control:
+        elif key == QtCore.Qt.Key.Key_Control:
             self.ctrl = True
-        elif event.key() == QtCore.Qt.Key.Key_Shift:
+        elif key == QtCore.Qt.Key.Key_Shift:
             self.shift = True
-        elif event.key() == QtCore.Qt.Key.Key_Delete or event.key() == QtCore.Qt.Key.Key_Backspace:
+        elif key == QtCore.Qt.Key.Key_Delete or key == QtCore.Qt.Key.Key_Backspace:
             self.delete_selection.emit()
-        elif event.key() == QtCore.Qt.Key.Key_R:
+        elif key == QtCore.Qt.Key.Key_R:
             self.relabel_selection.emit()
-        elif event.key() == QtCore.Qt.Key.Key_D:
+        elif key == QtCore.Qt.Key.Key_H:
             self.toggle_points.emit()
-        elif event.key() == QtCore.Qt.Key.Key_G:
+        elif key == QtCore.Qt.Key.Key_G:
             self.toggle_grid.emit()
-        elif event.key() == QtCore.Qt.Key.Key_1:
+        elif key == QtCore.Qt.Key.Key_I:
+            self.set_mode('counter')
+        elif key == QtCore.Qt.Key.Key_O:
+            self.set_mode('reviewer')
+        elif key == QtCore.Qt.Key.Key_W:
+            v = self.verticalScrollBar().value()
+            self.verticalScrollBar().setValue(v - PAN_STEP)
+        elif key == QtCore.Qt.Key.Key_S:
+            v = self.verticalScrollBar().value()
+            self.verticalScrollBar().setValue(v + PAN_STEP)
+        elif key == QtCore.Qt.Key.Key_A:
+            h = self.horizontalScrollBar().value()
+            self.horizontalScrollBar().setValue(h - PAN_STEP)
+        elif key == QtCore.Qt.Key.Key_D:
+            h = self.horizontalScrollBar().value()
+            self.horizontalScrollBar().setValue(h + PAN_STEP)
+        elif key == QtCore.Qt.Key.Key_1:
             self.switch_class.emit(0)
-        elif event.key() == QtCore.Qt.Key.Key_2:
+        elif key == QtCore.Qt.Key.Key_2:
             self.switch_class.emit(1)
-        elif event.key() == QtCore.Qt.Key.Key_3:
+        elif key == QtCore.Qt.Key.Key_3:
             self.switch_class.emit(2)
-        elif event.key() == QtCore.Qt.Key.Key_4:
+        elif key == QtCore.Qt.Key.Key_4:
             self.switch_class.emit(3)
-        elif event.key() == QtCore.Qt.Key.Key_5:
+        elif key == QtCore.Qt.Key.Key_5:
             self.switch_class.emit(4)
-        elif event.key() == QtCore.Qt.Key.Key_6:
+        elif key == QtCore.Qt.Key.Key_6:
             self.switch_class.emit(5)
-        elif event.key() == QtCore.Qt.Key.Key_7:
+        elif key == QtCore.Qt.Key.Key_7:
             self.switch_class.emit(6)
-        elif event.key() == QtCore.Qt.Key.Key_8:
+        elif key == QtCore.Qt.Key.Key_8:
             self.switch_class.emit(7)
-        elif event.key() == QtCore.Qt.Key.Key_9:
+        elif key == QtCore.Qt.Key.Key_9:
             self.switch_class.emit(8)
-        elif event.key() == QtCore.Qt.Key.Key_0:
+        elif key == QtCore.Qt.Key.Key_0:
             self.switch_class.emit(9)
 
     def keyReleaseEvent(self, event):
@@ -111,7 +142,10 @@ class CentralGraphicsView(QtWidgets.QGraphicsView):
         QtWidgets.QGraphicsView.mouseMoveEvent(self, event)
 
     def mousePressEvent(self, event):
-        if self.ctrl:
+        if self.mode == 'counter' and event.button() == QtCore.Qt.MouseButton.LeftButton:
+            self.add_point.emit(self.mapToScene(event.pos()))
+        elif self.ctrl:
+            # Backward-compatible Ctrl+click to place points from any mode
             self.add_point.emit(self.mapToScene(event.pos()))
         elif self.shift:
             self.setDragMode(QtWidgets.QGraphicsView.DragMode.RubberBandDrag)

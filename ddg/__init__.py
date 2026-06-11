@@ -24,7 +24,7 @@
 # --------------------------------------------------------------------------
 __version__ = '1.7.1'
 
-from .dark_mode_palette import DarkModePalette  # noqa: F401
+from .dark_mode_palette import DarkModePalette, NavyModePalette, NatureGreenPalette  # noqa: F401
 from .about_dialog import AboutDialog  # noqa: F401
 from .canvas import Canvas  # noqa: F401
 from .point_widget import PointWidget  # noqa: F401

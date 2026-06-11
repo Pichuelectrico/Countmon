@@ -30,7 +30,6 @@ from ddg import Canvas
 from ddg import PointWidget
 from ddg.fields import BoxText, LineText
 
-# from .ui_central_widget import Ui_central as CLASS_DIALOG
 if getattr(sys, 'frozen', False):
     bundle_dir = sys._MEIPASS
 else:
@@ -52,40 +51,35 @@ class CentralWidget(QtWidgets.QDialog, CLASS_DIALOG):
         self.point_widget.hide_custom_fields.connect(self.hide_custom_fields)
         self.canvas.saving.connect(self.display_quick_save)
 
-        # Keyboard shortcuts
-        # Quick save using Ctrl+S
-        self.save_shortcut = QtGui.QShortcut(QtGui.QKeySequence(QtCore.Qt.KeyboardModifier.ControlModifier | QtCore.Qt.Key.Key_S), self)
-        self.save_shortcut.setContext(QtCore.Qt.ShortcutContext.WidgetWithChildrenShortcut)
-        self.save_shortcut.activated.connect(self.canvas.quick_save)
+        # ── Keyboard shortcuts ──────────────────────────────────────────────
 
-        # Undo Redo shortcuts
-        self.save_shortcut = QtGui.QShortcut(QtGui.QKeySequence(QtCore.Qt.KeyboardModifier.ControlModifier | QtCore.Qt.Key.Key_Z), self)
-        self.save_shortcut.setContext(QtCore.Qt.ShortcutContext.WidgetWithChildrenShortcut)
-        self.save_shortcut.activated.connect(self.canvas.undo)
+        # Quick save
+        self._shortcut(QtCore.Qt.Key.Key_S, self.canvas.quick_save,
+                       modifier=QtCore.Qt.KeyboardModifier.ControlModifier)
+        # Undo / Redo
+        self._shortcut(QtCore.Qt.Key.Key_Z, self.canvas.undo,
+                       modifier=QtCore.Qt.KeyboardModifier.ControlModifier)
+        self._shortcut(QtCore.Qt.Key.Key_Y, self.canvas.redo,
+                       modifier=QtCore.Qt.KeyboardModifier.ControlModifier)
 
-        self.save_shortcut = QtGui.QShortcut(QtGui.QKeySequence(QtCore.Qt.KeyboardModifier.ControlModifier | QtCore.Qt.Key.Key_Y), self)
-        self.save_shortcut.setContext(QtCore.Qt.ShortcutContext.WidgetWithChildrenShortcut)
-        self.save_shortcut.activated.connect(self.canvas.redo)
+        # Arrow keys — navigate between images (WASD now pan the canvas)
+        self._shortcut(QtCore.Qt.Key.Key_Up, self.point_widget.previous)
+        self._shortcut(QtCore.Qt.Key.Key_Down, self.point_widget.next)
 
-        # Arrow short cuts to move among images
-        self.up_arrow = QtGui.QShortcut(QtGui.QKeySequence(QtCore.Qt.Key.Key_Up), self)
-        self.up_arrow.setContext(QtCore.Qt.ShortcutContext.WidgetWithChildrenShortcut)
-        self.up_arrow.activated.connect(self.point_widget.previous)
+        # T — new class dialog
+        self._shortcut(QtCore.Qt.Key.Key_T, self.point_widget.add_class)
 
-        self.down_arrow = QtGui.QShortcut(QtGui.QKeySequence(QtCore.Qt.Key.Key_Down), self)
-        self.down_arrow.setContext(QtCore.Qt.ShortcutContext.WidgetWithChildrenShortcut)
-        self.down_arrow.activated.connect(self.point_widget.next)
+        # I / O — counter / reviewer mode
+        self._shortcut(QtCore.Qt.Key.Key_I,
+                       lambda: self.graphicsView.set_mode('counter'))
+        self._shortcut(QtCore.Qt.Key.Key_O,
+                       lambda: self.graphicsView.set_mode('reviewer'))
 
-        # Same as arrow keys but conventient for right handed people
-        self.up_arrow = QtGui.QShortcut(QtGui.QKeySequence(QtCore.Qt.Key.Key_W), self)
-        self.up_arrow.setContext(QtCore.Qt.ShortcutContext.WidgetWithChildrenShortcut)
-        self.up_arrow.activated.connect(self.point_widget.previous)
+        # H — toggle point display (D is now used for panning right)
+        self._shortcut(QtCore.Qt.Key.Key_H,
+                       self.point_widget.checkBoxDisplayPoints.toggle)
 
-        self.down_arrow = QtGui.QShortcut(QtGui.QKeySequence(QtCore.Qt.Key.Key_S), self)
-        self.down_arrow.setContext(QtCore.Qt.ShortcutContext.WidgetWithChildrenShortcut)
-        self.down_arrow.activated.connect(self.point_widget.next)
-
-        # Make signal slot connections
+        # ── Signal connections ──────────────────────────────────────────────
         self.graphicsView.setScene(self.canvas)
         self.graphicsView.drop_complete.connect(self.canvas.load)
         self.graphicsView.region_selected.connect(self.canvas.select_points)
@@ -95,6 +89,7 @@ class CentralWidget(QtWidgets.QDialog, CLASS_DIALOG):
         self.graphicsView.toggle_grid.connect(self.point_widget.checkBoxDisplayGrid.toggle)
         self.graphicsView.switch_class.connect(self.point_widget.set_active_class)
         self.graphicsView.add_point.connect(self.canvas.add_point)
+        self.graphicsView.mode_changed.connect(self._update_mode_badge)
         self.canvas.image_loaded.connect(self.graphicsView.image_loaded)
         self.canvas.directory_set.connect(self.display_working_directory)
 
@@ -119,25 +114,94 @@ class CentralWidget(QtWidgets.QDialog, CLASS_DIALOG):
         self.pushButtonDeleteField.setIcon(QtGui.QIcon('icons:delete.svg'))
         self.pushButtonAddField.setIcon(QtGui.QIcon('icons:add.svg'))
 
+        # ── Quick-save overlay ─────────────────────────────────────────────
         self.quick_save_frame = QtWidgets.QFrame(self.graphicsView)
-        self.quick_save_frame.setStyleSheet("QFrame { background: #4caf50;color: #FFF;font-weight: bold}")
+        self.quick_save_frame.setStyleSheet(
+            "QFrame { background: #4caf50; color: #FFF; font-weight: bold }")
         self.quick_save_frame.setLayout(QtWidgets.QHBoxLayout())
         self.quick_save_frame.layout().addWidget(QtWidgets.QLabel(self.tr('Saving...')))
         self.quick_save_frame.setGeometry(3, 3, 100, 35)
         self.quick_save_frame.hide()
 
+        # ── Mode badge overlay — both tags always visible ──────────────────
+        self.mode_badge = QtWidgets.QFrame(self.graphicsView)
+        self.mode_badge.setStyleSheet(
+            "QFrame { background: rgba(30,30,30,200); border-radius: 5px; }")
+        lay = QtWidgets.QHBoxLayout(self.mode_badge)
+        lay.setContentsMargins(6, 3, 6, 3)
+        lay.setSpacing(6)
+
+        self._lbl_counter = QtWidgets.QLabel(self.tr('● Counter  [I]'))
+        self._lbl_reviewer = QtWidgets.QLabel(self.tr('● Reviewer  [O]'))
+        for lbl in (self._lbl_counter, self._lbl_reviewer):
+            lbl.setStyleSheet("font-size: 11px; font-weight: bold;")
+        lay.addWidget(self._lbl_counter)
+
+        sep = QtWidgets.QFrame()
+        sep.setFrameShape(QtWidgets.QFrame.Shape.VLine)
+        sep.setStyleSheet("color: rgba(180,180,180,100);")
+        lay.addWidget(sep)
+
+        lay.addWidget(self._lbl_reviewer)
+        self.mode_badge.adjustSize()
+        self.mode_badge.move(3, 42)
+        self._update_mode_badge('reviewer')
+
         self.lineEditSurveyId.textChanged.connect(self.canvas.update_survey_id)
         self.canvas.points_loaded.connect(self.lineEditSurveyId.setText)
+
+    # ── Helpers ────────────────────────────────────────────────────────────
+
+    def _shortcut(self, key, slot, modifier=QtCore.Qt.KeyboardModifier.NoModifier):
+        if modifier == QtCore.Qt.KeyboardModifier.NoModifier:
+            sc = QtGui.QShortcut(QtGui.QKeySequence(key), self)
+        else:
+            sc = QtGui.QShortcut(QtGui.QKeySequence(modifier | key), self)
+        sc.setContext(QtCore.Qt.ShortcutContext.WidgetWithChildrenShortcut)
+        sc.activated.connect(slot)
+        return sc
+
+    def _update_mode_badge(self, mode):
+        ACTIVE_COUNTER  = "font-size: 11px; font-weight: bold; color: #66bb6a;"   # green
+        ACTIVE_REVIEWER = "font-size: 11px; font-weight: bold; color: #42a5f5;"   # blue
+        INACTIVE        = "font-size: 11px; font-weight: bold; color: rgba(160,160,160,130);"
+
+        if mode == 'counter':
+            self._lbl_counter.setStyleSheet(ACTIVE_COUNTER)
+            self._lbl_reviewer.setStyleSheet(INACTIVE)
+        else:
+            self._lbl_counter.setStyleSheet(INACTIVE)
+            self._lbl_reviewer.setStyleSheet(ACTIVE_REVIEWER)
+        self.mode_badge.adjustSize()
+
+    # ── Panel visibility (called from MainWindow corner buttons) ───────────
+
+    def toggle_left_panel(self, hide):
+        frame = self.findChild(QtWidgets.QFrame, 'framePointWidget')
+        if hide:
+            frame.hide()
+        else:
+            frame.show()
+
+    def toggle_right_panel(self, hide):
+        if hide:
+            self.frameCustomField.hide()
+        else:
+            self.frameCustomField.show()
+
+    # ── Resize ─────────────────────────────────────────────────────────────
 
     def resizeEvent(self, theEvent):
         self.graphicsView.resize_image()
 
-    # Image data field functions
+    # ── Image data field functions ─────────────────────────────────────────
+
     def add_field(self):
         field_def = (self.field_name.text(), self.field_type.currentText())
         field_names = [x[0] for x in self.canvas.custom_fields['fields']]
         if field_def[0] in field_names:
-            QtWidgets.QMessageBox.warning(self, self.tr('Warning'), self.tr('Field name already exists'))
+            QtWidgets.QMessageBox.warning(self, self.tr('Warning'),
+                                          self.tr('Field name already exists'))
         else:
             self.canvas.add_custom_field(field_def)
             self.add_dialog.close()
@@ -210,7 +274,8 @@ class CentralWidget(QtWidgets.QDialog, CLASS_DIALOG):
         for item in fields:
             widget = build(item)
             custom_fields.layout().addWidget(widget)
-        v = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Expanding)
+        v = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Policy.Minimum,
+                                  QtWidgets.QSizePolicy.Policy.Expanding)
         custom_fields.layout().addItem(v)
         self.get_custom_field_data()
 
@@ -231,7 +296,8 @@ class CentralWidget(QtWidgets.QDialog, CLASS_DIALOG):
             self.frameCustomField.show()
 
     def select_folder(self):
-        name = QtWidgets.QFileDialog.getExistingDirectory(self, self.tr('Select image folder'), self.canvas.directory)
+        name = QtWidgets.QFileDialog.getExistingDirectory(
+            self, self.tr('Select image folder'), self.canvas.directory)
         if name != '':
             self.canvas.load([QtCore.QUrl('file:{}'.format(name))])
 

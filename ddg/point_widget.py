@@ -28,12 +28,17 @@ from PyQt6 import QtCore, QtGui, QtWidgets, uic
 
 from .chip_dialog import ChipDialog
 
-# from .ui_point_widget import Ui_Pointwidget as WIDGET
 if getattr(sys, 'frozen', False):
     bundle_dir = sys._MEIPASS
 else:
     bundle_dir = os.path.dirname(__file__)
 WIDGET, _ = uic.loadUiType(os.path.join(bundle_dir, 'point_widget.ui'))
+
+# Column indices
+COL_NUM   = 0   # # shortcut number (read-only)
+COL_NAME  = 1   # class name (editable)
+COL_COLOR = 2   # color swatch (click to change)
+COL_MOVE  = 3   # ↑↓ buttons widget
 
 
 class PointWidget(QtWidgets.QWidget, WIDGET):
@@ -64,15 +69,38 @@ class PointWidget(QtWidgets.QWidget, WIDGET):
         self.pushButtonRemoveClass.setIcon(QtGui.QIcon('icons:delete.svg'))
         self.pushButtonAddClass.setIcon(QtGui.QIcon('icons:add.svg'))
 
+        # ── Replace QTableWidget from .ui with a fresh 4-column table ───────
+        old_table = self.tableWidgetClasses
+        parent_layout = self.groupBoxClasses.layout()
+        parent_layout.removeWidget(old_table)
+        old_table.hide()
+        old_table.setParent(None)
+
+        self.tableWidgetClasses = QtWidgets.QTableWidget(self.groupBoxClasses)
+        parent_layout.insertWidget(0, self.tableWidgetClasses)
+
+        # Column setup
+        self.tableWidgetClasses.setColumnCount(4)
+        self.tableWidgetClasses.setHorizontalHeaderLabels(['#', 'Class', '', ''])
+        hh = self.tableWidgetClasses.horizontalHeader()
+        hh.setMinimumSectionSize(1)
+        hh.setStretchLastSection(False)
+        hh.setSectionResizeMode(COL_NAME, QtWidgets.QHeaderView.ResizeMode.Stretch)
+        self.tableWidgetClasses.setColumnWidth(COL_NUM,   26)
+        self.tableWidgetClasses.setColumnWidth(COL_COLOR, 28)
+        self.tableWidgetClasses.setColumnWidth(COL_MOVE,  46)
         self.tableWidgetClasses.verticalHeader().setVisible(False)
-        self.tableWidgetClasses.horizontalHeader().setMinimumSectionSize(1)
-        self.tableWidgetClasses.horizontalHeader().setStretchLastSection(False)
-        self.tableWidgetClasses.horizontalHeader().setSectionResizeMode(0, QtWidgets.QHeaderView.ResizeMode.Stretch)
-        self.tableWidgetClasses.setColumnWidth(1, 30)
+        self.tableWidgetClasses.setSelectionMode(
+            QtWidgets.QAbstractItemView.SelectionMode.SingleSelection)
+        self.tableWidgetClasses.setSelectionBehavior(
+            QtWidgets.QAbstractItemView.SelectionBehavior.SelectRows)
+
         self.tableWidgetClasses.cellClicked.connect(self.cell_clicked)
         self.tableWidgetClasses.cellChanged.connect(self.cell_changed)
-        self.tableWidgetClasses.selectionModel().selectionChanged.connect(self.selection_changed)
+        self.tableWidgetClasses.selectionModel().selectionChanged.connect(
+            self.selection_changed)
 
+        # ── Rest of widget setup ───────────────────────────────────────────
         self.checkBoxDisplayPoints.toggled.connect(self.display_points)
         self.checkBoxDisplayGrid.toggled.connect(self.display_grid)
         self.canvas.image_loading.connect(self.set_sliders)
@@ -100,26 +128,126 @@ class PointWidget(QtWidgets.QWidget, WIDGET):
         self.labelGridColor.mousePressEvent = self.change_grid_color
 
         self.checkBoxImageFields.clicked.connect(self.hide_custom_fields.emit)
+        self.checkBoxImageFields.hide()
         self.horizontalSliderBrightness.valueChanged.connect(self.set_brightness)
         self.horizontalSliderContrast.valueChanged.connect(self.set_contrast)
 
+    # ── Class list ─────────────────────────────────────────────────────────
+
     def add_class(self):
-        class_name, ok = QtWidgets.QInputDialog.getText(self, self.tr('New Class'), self.tr('Class Name'))
-        if ok:
-            self.canvas.add_class(class_name)
+        class_name, ok = QtWidgets.QInputDialog.getText(
+            self, self.tr('New Class'), self.tr('Class Name'))
+        if ok and class_name.strip():
+            self.canvas.add_class(class_name.strip())
             self.display_classes()
             self.display_count_tree()
 
-    def display_grid(self, display):
-        self.canvas.toggle_grid(display=display)
+    def remove_class(self):
+        indexes = self.tableWidgetClasses.selectedIndexes()
+        if len(indexes) > 0:
+            class_name = self.canvas.classes[indexes[0].row()]
+            msgBox = QtWidgets.QMessageBox()
+            msgBox.setWindowTitle(self.tr('Warning'))
+            msgBox.setText(self.tr('{} [{}] '.format(
+                self.tr('You are about to remove class'), class_name)))
+            msgBox.setInformativeText(self.tr('Do you want to continue?'))
+            msgBox.setStandardButtons(
+                QtWidgets.QMessageBox.StandardButton.Cancel |
+                QtWidgets.QMessageBox.StandardButton.Ok)
+            msgBox.setDefaultButton(QtWidgets.QMessageBox.StandardButton.Cancel)
+            if msgBox.exec() == QtWidgets.QMessageBox.StandardButton.Ok:
+                self.canvas.remove_class(class_name)
+                self.display_classes()
+                self.display_count_tree()
 
-    def display_points(self, display):
-        self.canvas.toggle_points(display=display)
+    def _move_class(self, row, direction):
+        """Move the class at `row` up (direction=-1) or down (direction=+1)."""
+        new_row = row + direction
+        if new_row < 0 or new_row >= len(self.canvas.classes):
+            return
+        classes = self.canvas.classes
+        classes.insert(new_row, classes.pop(row))
+        self.canvas.dirty = True
+        self.display_classes()
+        self.display_count_tree()
+        self.tableWidgetClasses.selectRow(new_row)
+
+    def _make_move_widget(self, row):
+        """Return a small widget with ↑ and ↓ QToolButtons for reordering."""
+        widget = QtWidgets.QWidget()
+        layout = QtWidgets.QHBoxLayout(widget)
+        layout.setContentsMargins(2, 1, 2, 1)
+        layout.setSpacing(1)
+
+        btn_style = (
+            "QToolButton { border: none; font-size: 9px; }"
+            "QToolButton:hover { background: rgba(128,128,128,80); border-radius: 2px; }"
+        )
+
+        btn_up = QtWidgets.QToolButton()
+        btn_up.setArrowType(QtCore.Qt.ArrowType.UpArrow)
+        btn_up.setFixedSize(20, 18)
+        btn_up.setStyleSheet(btn_style)
+        btn_up.setToolTip(self.tr('Move class up'))
+        btn_up.clicked.connect(lambda checked=False, r=row: self._move_class(r, -1))
+
+        btn_down = QtWidgets.QToolButton()
+        btn_down.setArrowType(QtCore.Qt.ArrowType.DownArrow)
+        btn_down.setFixedSize(20, 18)
+        btn_down.setStyleSheet(btn_style)
+        btn_down.setToolTip(self.tr('Move class down'))
+        btn_down.clicked.connect(lambda checked=False, r=row: self._move_class(r, 1))
+
+        layout.addWidget(btn_up)
+        layout.addWidget(btn_down)
+        return widget
+
+    def display_classes(self):
+        self.tableWidgetClasses.blockSignals(True)
+        self.tableWidgetClasses.setRowCount(len(self.canvas.classes))
+        for row, class_name in enumerate(self.canvas.classes):
+            # Col 0 — shortcut number: 1-9 for rows 0-8, 0 for row 9, blank after
+            if row < 9:
+                shortcut = str(row + 1)
+            elif row == 9:
+                shortcut = '0'
+            else:
+                shortcut = ''
+            num_item = QtWidgets.QTableWidgetItem(shortcut)
+            num_item.setFlags(
+                num_item.flags() & ~QtCore.Qt.ItemFlag.ItemIsEditable)
+            num_item.setTextAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
+            self.tableWidgetClasses.setItem(row, COL_NUM, num_item)
+
+            # Col 1 — class name (editable)
+            self.tableWidgetClasses.setItem(row, COL_NAME,
+                                            QtWidgets.QTableWidgetItem(class_name))
+
+            # Col 2 — color swatch (click-to-change, non-editable)
+            color_item = QtWidgets.QTableWidgetItem()
+            px = QtGui.QPixmap(18, 18)
+            px.fill(self.canvas.colors[class_name])
+            color_item.setData(QtCore.Qt.ItemDataRole.DecorationRole, px)
+            color_item.setFlags(
+                color_item.flags() & ~QtCore.Qt.ItemFlag.ItemIsEditable)
+            self.tableWidgetClasses.setItem(row, COL_COLOR, color_item)
+
+            # Col 3 — ↑↓ move widget
+            self.tableWidgetClasses.setCellWidget(
+                row, COL_MOVE, self._make_move_widget(row))
+
+        self.tableWidgetClasses.selectionModel().clear()
+        self.tableWidgetClasses.blockSignals(False)
+
+    # ── Cell events ────────────────────────────────────────────────────────
 
     def cell_changed(self, row, column):
-        if column == 0:
+        if column == COL_NAME:
+            item = self.tableWidgetClasses.item(row, COL_NAME)
+            if item is None or row >= len(self.canvas.classes):
+                return
+            new_class = item.text()
             old_class = self.canvas.classes[row]
-            new_class = self.tableWidgetClasses.item(row, column).text()
             if old_class != new_class:
                 self.tableWidgetClasses.selectionModel().clear()
                 self.canvas.rename_class(old_class, new_class)
@@ -127,16 +255,18 @@ class PointWidget(QtWidgets.QWidget, WIDGET):
                 self.display_count_tree()
 
     def cell_clicked(self, row, column):
-        if column == 1:
+        if column == COL_COLOR:
             color = QtWidgets.QColorDialog.getColor()
             if color.isValid():
                 self.canvas.colors[self.canvas.classes[row]] = color
                 self.canvas.dirty = True
-                item = QtWidgets.QTableWidgetItem()
-                icon = QtGui.QPixmap(20, 20)
-                icon.fill(color)
-                item.setData(QtCore.Qt.ItemDataRole.DecorationRole, icon)
-                self.tableWidgetClasses.setItem(row, 1, item)
+                color_item = QtWidgets.QTableWidgetItem()
+                px = QtGui.QPixmap(18, 18)
+                px.fill(color)
+                color_item.setData(QtCore.Qt.ItemDataRole.DecorationRole, px)
+                color_item.setFlags(
+                    color_item.flags() & ~QtCore.Qt.ItemFlag.ItemIsEditable)
+                self.tableWidgetClasses.setItem(row, COL_COLOR, color_item)
 
     def change_active_point_color(self, event):
         color = QtWidgets.QColorDialog.getColor()
@@ -148,20 +278,13 @@ class PointWidget(QtWidgets.QWidget, WIDGET):
         if color.isValid():
             self.set_grid_color(color)
 
-    def display_classes(self):
-        self.tableWidgetClasses.setRowCount(len(self.canvas.classes))
-        row = 0
-        for class_name in self.canvas.classes:
-            item = QtWidgets.QTableWidgetItem(class_name)
-            self.tableWidgetClasses.setItem(row, 0, item)
+    # ── Display ────────────────────────────────────────────────────────────
 
-            item = QtWidgets.QTableWidgetItem()
-            icon = QtGui.QPixmap(20, 20)
-            icon.fill(self.canvas.colors[class_name])
-            item.setData(QtCore.Qt.ItemDataRole.DecorationRole, icon)
-            self.tableWidgetClasses.setItem(row, 1, item)
-            row += 1
-        self.tableWidgetClasses.selectionModel().clear()
+    def display_grid(self, display):
+        self.canvas.toggle_grid(display=display)
+
+    def display_points(self, display):
+        self.canvas.toggle_points(display=display)
 
     def display_count_tree(self):
         self.reset_model()
@@ -176,7 +299,8 @@ class PointWidget(QtWidgets.QWidget, WIDGET):
                 font = image_item.font()
                 font.setStrikeOut(True)
                 image_item.setFont(font)
-                image_item.setForeground(QtGui.QBrush(QtCore.Qt.GlobalColor.red))
+                image_item.setForeground(
+                    QtGui.QBrush(QtCore.Qt.GlobalColor.red))
             if image == self.canvas.current_image_name:
                 font = image_item.font()
                 font.setBold(True)
@@ -188,73 +312,87 @@ class PointWidget(QtWidgets.QWidget, WIDGET):
                 class_item = QtGui.QStandardItem(class_name)
                 class_item.setEditable(False)
                 class_item.setSelectable(False)
-                class_count = QtGui.QStandardItem('0')
+                count = '0'
                 if class_name in self.canvas.points[image]:
-                    class_count = QtGui.QStandardItem(str(len(self.canvas.points[image][class_name])))
-                class_count.setEditable(False)
-                class_count.setSelectable(False)
-                image_item.appendRow([class_item, class_count])
+                    count = str(len(self.canvas.points[image][class_name]))
+                count_item = QtGui.QStandardItem(count)
+                count_item.setEditable(False)
+                count_item.setSelectable(False)
+                image_item.appendRow([class_item, count_item])
         self.treeView.scrollTo(self.current_model_index)
+
+    # ── File operations ────────────────────────────────────────────────────
 
     def export(self):
         if self.radioButtonCounts.isChecked():
-            file_name = QtWidgets.QFileDialog.getSaveFileName(self, self.tr('Export Count Summary'), os.path.join(self.canvas.directory, 'counts.csv'), 'Text CSV (*.csv)')
-            if file_name[0] != '':
-                self.canvas.export_counts(file_name[0])
+            fn = QtWidgets.QFileDialog.getSaveFileName(
+                self, self.tr('Export Count Summary'),
+                os.path.join(self.canvas.directory, 'counts.csv'),
+                'Text CSV (*.csv)')
+            if fn[0]:
+                self.canvas.export_counts(fn[0])
         elif self.radioButtonPoints.isChecked():
-            file_name = QtWidgets.QFileDialog.getSaveFileName(self, self.tr('Export Points'), os.path.join(self.canvas.directory, 'points.csv'), 'Text CSV (*.csv)')
-            if file_name[0] != '':
-                self.canvas.export_points(file_name[0])
+            fn = QtWidgets.QFileDialog.getSaveFileName(
+                self, self.tr('Export Points'),
+                os.path.join(self.canvas.directory, 'points.csv'),
+                'Text CSV (*.csv)')
+            if fn[0]:
+                self.canvas.export_points(fn[0])
         elif self.radioButtonOverlay.isChecked():
-            file_name = QtWidgets.QFileDialog.getSaveFileName(self, self.tr('Export Image With Points'), os.path.join(self.canvas.directory, 'overlay.png'), 'PNG (*.png);;JPG (*.jpg)')
-            if file_name[0] != '':
-                self.canvas.export_overlay(file_name[0])
+            fn = QtWidgets.QFileDialog.getSaveFileName(
+                self, self.tr('Export Image With Points'),
+                os.path.join(self.canvas.directory, 'overlay.png'),
+                'PNG (*.png);;JPG (*.jpg)')
+            if fn[0]:
+                self.canvas.export_overlay(fn[0])
         else:
-            self.chip_dialog = ChipDialog(self.canvas.classes, self.canvas.points, self.canvas.directory, self.canvas.survey_id)
+            self.chip_dialog = ChipDialog(
+                self.canvas.classes, self.canvas.points,
+                self.canvas.directory, self.canvas.survey_id)
             self.chip_dialog.show()
 
     def image_loaded(self, directory, file_name):
-        # self.tableWidgetClasses.selectionModel().clear()
         self.display_count_tree()
 
     def import_metadata(self):
         if self.canvas.dirty_data_check():
-            file_name = QtWidgets.QFileDialog.getOpenFileName(self, self.tr('Select Points File'), self.canvas.directory, 'Point Files (*.pnt)')
-            if file_name[0] != '':
-                self.canvas.import_metadata(file_name[0])
+            fn = QtWidgets.QFileDialog.getOpenFileName(
+                self, self.tr('Select Points File'),
+                self.canvas.directory, 'Point Files (*.pnt)')
+            if fn[0]:
+                self.canvas.import_metadata(fn[0])
 
     def load(self):
         if self.canvas.dirty_data_check():
-            file_name = QtWidgets.QFileDialog.getOpenFileName(self, self.tr('Select Points File'), self.canvas.directory, 'Point Files (*.pnt)')
-            if file_name[0] != '':
-                self.canvas.load_points(file_name[0])
+            fn = QtWidgets.QFileDialog.getOpenFileName(
+                self, self.tr('Select Points File'),
+                self.canvas.directory, 'Point Files (*.pnt)')
+            if fn[0]:
+                self.canvas.load_points(fn[0])
+
+    # ── Navigation ─────────────────────────────────────────────────────────
 
     def next(self):
         max_index = self.model.rowCount()
         next_index = self.current_model_index.row() + 1
         if next_index < max_index:
-            item = self.model.item(next_index)
-            self.select_model_item(item.index())
-
-    def points_loaded(self):
-        self.display_classes()
-        self.update_ui_settings()
+            self.select_model_item(self.model.item(next_index).index())
 
     def previous(self):
-        next_index = self.current_model_index.row() - 1
-        if next_index >= 0:
-            item = self.model.item(next_index)
-            self.select_model_item(item.index())
+        prev_index = self.current_model_index.row() - 1
+        if prev_index >= 0:
+            self.select_model_item(self.model.item(prev_index).index())
 
     def reset(self):
         msgBox = QtWidgets.QMessageBox()
         msgBox.setWindowTitle(self.tr('Warning'))
         msgBox.setText(self.tr('You are about to clear all data'))
         msgBox.setInformativeText(self.tr('Do you want to continue?'))
-        msgBox.setStandardButtons(QtWidgets.QMessageBox.StandardButton.Cancel | QtWidgets.QMessageBox.StandardButton.Ok)
+        msgBox.setStandardButtons(
+            QtWidgets.QMessageBox.StandardButton.Cancel |
+            QtWidgets.QMessageBox.StandardButton.Ok)
         msgBox.setDefaultButton(QtWidgets.QMessageBox.StandardButton.Cancel)
-        response = msgBox.exec()
-        if response == QtWidgets.QMessageBox.StandardButton.Ok:
+        if msgBox.exec() == QtWidgets.QMessageBox.StandardButton.Ok:
             self.canvas.reset()
             self.display_classes()
             self.display_count_tree()
@@ -263,37 +401,24 @@ class PointWidget(QtWidgets.QWidget, WIDGET):
         self.current_model_index = QtCore.QModelIndex()
         self.model.clear()
         self.model.setColumnCount(2)
-        self.model.setHeaderData(0, QtCore.Qt.Orientation.Horizontal, self.tr('Image'))
-        self.model.setHeaderData(1, QtCore.Qt.Orientation.Horizontal, self.tr('Count'))
+        self.model.setHeaderData(0, QtCore.Qt.Orientation.Horizontal,
+                                 self.tr('Image'))
+        self.model.setHeaderData(1, QtCore.Qt.Orientation.Horizontal,
+                                 self.tr('Count'))
         self.treeView.setExpandsOnDoubleClick(False)
         self.treeView.header().setStretchLastSection(False)
-        self.treeView.header().setSectionResizeMode(0, QtWidgets.QHeaderView.ResizeMode.Stretch)
+        self.treeView.header().setSectionResizeMode(
+            0, QtWidgets.QHeaderView.ResizeMode.Stretch)
         self.treeView.setTextElideMode(QtCore.Qt.TextElideMode.ElideMiddle)
-
-    def remove_class(self):
-        indexes = self.tableWidgetClasses.selectedIndexes()
-        if len(indexes) > 0:
-            class_name = self.canvas.classes[indexes[0].row()]
-            msgBox = QtWidgets.QMessageBox()
-            msgBox.setWindowTitle(self.tr('Warning'))
-            msgBox.setText(self.tr('{} [{}] '.format(self.tr('You are about to remove class'), class_name)))
-            msgBox.setInformativeText(self.tr('Do you want to continue?'))
-            msgBox.setStandardButtons(QtWidgets.QMessageBox.StandardButton.Cancel | QtWidgets.QMessageBox.StandardButton.Ok)
-            msgBox.setDefaultButton(QtWidgets.QMessageBox.StandardButton.Cancel)
-            response = msgBox.exec()
-            if response == QtWidgets.QMessageBox.StandardButton.Ok:
-                self.canvas.remove_class(class_name)
-                self.display_classes()
-                self.display_count_tree()
 
     def select_model_item(self, model_index):
         item = self.model.itemFromIndex(model_index)
         if item.isSelectable():
             if item.column() != 0:
-                index = self.model.index(item.row(), 0)
-                item = self.model.itemFromIndex(index)
-            path = os.path.join(self.canvas.directory, item.text())
-            self.canvas.load_image(path)
+                item = self.model.itemFromIndex(
+                    self.model.index(item.row(), 0))
+            self.canvas.load_image(
+                os.path.join(self.canvas.directory, item.text()))
 
     def selection_changed(self, selected, deselected):
         if len(selected.indexes()) > 0:
@@ -301,22 +426,32 @@ class PointWidget(QtWidgets.QWidget, WIDGET):
         else:
             self.canvas.set_current_class(None)
 
+    # ── Active class ───────────────────────────────────────────────────────
+
+    def set_active_class(self, row):
+        if row < self.tableWidgetClasses.rowCount():
+            self.tableWidgetClasses.selectRow(row)
+
+    def points_loaded(self):
+        self.display_classes()
+        self.update_ui_settings()
+
+    # ── Display settings ───────────────────────────────────────────────────
+
     def set_active_point_color(self, color):
         icon = QtGui.QPixmap(20, 20)
         icon.fill(color)
         self.labelPointColor.setPixmap(icon)
         self.canvas.set_point_color(color)
 
-    def set_active_class(self, row):
-        if row < self.tableWidgetClasses.rowCount():
-            self.tableWidgetClasses.selectRow(row)
-
     def set_brightness(self, value):
-        self.canvas.generate_lookup_table(value, self.horizontalSliderContrast.value())
+        self.canvas.generate_lookup_table(
+            value, self.horizontalSliderContrast.value())
         self.canvas.redraw_image()
 
     def set_contrast(self, value):
-        self.canvas.generate_lookup_table(self.horizontalSliderBrightness.value(), value)
+        self.canvas.generate_lookup_table(
+            self.horizontalSliderBrightness.value(), value)
         self.canvas.redraw_image()
 
     def set_grid_color(self, color):
@@ -341,13 +476,21 @@ class PointWidget(QtWidgets.QWidget, WIDGET):
         if len(items) == 0:
             self.display_count_tree()
         else:
-            items[0].child(self.canvas.classes.index(class_name), 1).setText(str(class_count))
+            items[0].child(
+                self.canvas.classes.index(class_name), 1
+            ).setText(str(class_count))
 
     def update_ui_settings(self):
         ui = self.canvas.ui
-        color = QtGui.QColor(ui['point']['color'][0], ui['point']['color'][1], ui['point']['color'][2])
+        color = QtGui.QColor(
+            ui['point']['color'][0],
+            ui['point']['color'][1],
+            ui['point']['color'][2])
         self.set_active_point_color(color)
         self.spinBoxPointRadius.setValue(ui['point']['radius'])
-        color = QtGui.QColor(ui['grid']['color'][0], ui['grid']['color'][1], ui['grid']['color'][2])
+        color = QtGui.QColor(
+            ui['grid']['color'][0],
+            ui['grid']['color'][1],
+            ui['grid']['color'][2])
         self.set_grid_color(color)
         self.spinBoxGrid.setValue(ui['grid']['size'])

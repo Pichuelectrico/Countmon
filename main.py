@@ -26,27 +26,28 @@
 import os
 import sys
 from PyQt6 import QtWidgets, QtCore
-from ddg import ExceptionHandler, MainWindow, DarkModePalette
+from ddg import ExceptionHandler, MainWindow
+from ddg.main_window import apply_theme
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
-    if getattr(sys, 'frozen', False):
-        QtCore.QDir.addSearchPath('icons', os.path.join(sys._MEIPASS, 'icons'))
-        QtCore.QDir.addSearchPath('i18n', os.path.join(sys._MEIPASS, 'i18n'))
+    if getattr(sys, "frozen", False):
+        QtCore.QDir.addSearchPath("icons", os.path.join(sys._MEIPASS, "icons"))
+        QtCore.QDir.addSearchPath("i18n", os.path.join(sys._MEIPASS, "i18n"))
     else:
-        QtCore.QDir.addSearchPath('icons', './icons/')
-        QtCore.QDir.addSearchPath('i18n', './i18n/')
+        QtCore.QDir.addSearchPath("icons", "./icons/")
+        QtCore.QDir.addSearchPath("i18n", "./i18n/")
 
-    app.setStyle('fusion')
-    if app.styleHints().colorScheme() == QtCore.Qt.ColorScheme.Dark:
-        app.setPalette(DarkModePalette())
-        # Palette colors are not honored by Qt6.5.3
-        app.setStyleSheet("QToolTip { color: #ffffff; background-color: #000000; border: 0px; padding: 2px}")
+    app.setStyle("fusion")
 
     settings = QtCore.QSettings("AMNH", "DotDotGoose")
+    apply_theme(settings.value("theme", "system"), app)
+
     translator = QtCore.QTranslator()
-    if settings.value('locale'):
-        if translator.load(QtCore.QLocale(settings.value('locale')), "ddg", "_", "i18n:/"):
+    if settings.value("locale"):
+        if translator.load(
+            QtCore.QLocale(settings.value("locale")), "ddg", "_", "i18n:/"
+        ):
             QtCore.QCoreApplication.installTranslator(translator)
     else:
         if translator.load(QtCore.QLocale(), "ddg", "_", "i18n:/"):
