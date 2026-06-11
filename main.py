@@ -1,20 +1,20 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
 #
-# DotDotGoose
+# Countmon
 # Author: Peter Ersts (ersts@amnh.org)
 #
 # --------------------------------------------------------------------------
 #
-# This file is part of the DotDotGoose application.
-# DotDotGoose was forked from the Neural Network Image Classifier (Nenetic).
+# This file is part of the Countmon application.
+# Countmon is built on DotDotGoose (https://github.com/persts/DotDotGoose), which was forked from Nenetic.
 #
-# DotDotGoose is free software: you can redistribute it and/or modify
+# Countmon is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
 #
-# DotDotGoose is distributed in the hope that it will be useful,
+# Countmon is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
@@ -40,7 +40,7 @@ if __name__ == "__main__":
 
     app.setStyle("fusion")
 
-    settings = QtCore.QSettings("AMNH", "DotDotGoose")
+    settings = QtCore.QSettings("Countmon", "Countmon")
     apply_theme(settings.value("theme", "system"), app)
 
     translator = QtCore.QTranslator()

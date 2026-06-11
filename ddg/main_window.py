@@ -1,19 +1,19 @@
 # -*- coding: utf-8 -*-
 #
-# DotDotGoose
+# Countmon
 # Author: Peter Ersts (ersts@amnh.org)
 #
 # --------------------------------------------------------------------------
 #
-# This file is part of the DotDotGoose application.
-# DotDotGoose was forked from the Neural Network Image Classifier (Nenetic).
+# This file is part of the Countmon application.
+# Countmon is built on DotDotGoose (https://github.com/persts/DotDotGoose), which was forked from Nenetic.
 #
-# DotDotGoose is free software: you can redistribute it and/or modify
+# Countmon is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
 #
-# DotDotGoose is distributed in the hope that it will be useful,
+# Countmon is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
@@ -62,8 +62,8 @@ def apply_theme(name, app=None):
 class MainWindow(QtWidgets.QMainWindow):
     def __init__(self):
         QtWidgets.QMainWindow.__init__(self)
-        self.setWindowTitle('DotDotGoose [v {}]'.format(__version__))
-        self.setWindowIcon(QtGui.QIcon("icons:ddg.png"))
+        self.setWindowTitle('Countmon [v {}]'.format(__version__))
+        self.setWindowIcon(QtGui.QIcon("icons:logo_countmon.png"))
         self.setCentralWidget(CentralWidget())
         self.about_dialog = AboutDialog(self)
 
@@ -103,7 +103,7 @@ class MainWindow(QtWidgets.QMainWindow):
             ('navy',   self.tr('Navy Blue')),
             ('nature', self.tr('Nature Green')),
         ]
-        settings = QtCore.QSettings("AMNH", "DotDotGoose")
+        settings = QtCore.QSettings("Countmon", "Countmon")
         current_theme = settings.value('theme', 'system')
 
         for key, label in themes:
@@ -161,7 +161,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.centralWidget().toggle_right_panel(checked)
 
     def _set_theme(self, name):
-        settings = QtCore.QSettings("AMNH", "DotDotGoose")
+        settings = QtCore.QSettings("Countmon", "Countmon")
         settings.setValue('theme', name)
         apply_theme(name)
 
@@ -178,32 +178,32 @@ class MainWindow(QtWidgets.QMainWindow):
         self.error_widget.show()
 
     def en_US(self):
-        settings = QtCore.QSettings("AMNH", "DotDotGoose")
+        settings = QtCore.QSettings("Countmon", "Countmon")
         settings.setValue('locale', 'en_US')
         self.restart_message()
 
     def es_CO(self):
-        settings = QtCore.QSettings("AMNH", "DotDotGoose")
+        settings = QtCore.QSettings("Countmon", "Countmon")
         settings.setValue('locale', 'es_CO')
         self.restart_message()
 
     def fr_FR(self):
-        settings = QtCore.QSettings("AMNH", "DotDotGoose")
+        settings = QtCore.QSettings("Countmon", "Countmon")
         settings.setValue('locale', 'fr')
         self.restart_message()
 
     def hu_HU(self):
-        settings = QtCore.QSettings("AMNH", "DotDotGoose")
+        settings = QtCore.QSettings("Countmon", "Countmon")
         settings.setValue('locale', 'hu')
         self.restart_message()
 
     def vi_VN(self):
-        settings = QtCore.QSettings("AMNH", "DotDotGoose")
+        settings = QtCore.QSettings("Countmon", "Countmon")
         settings.setValue('locale', 'vi_VN')
         self.restart_message()
 
     def zh_Hans_CN(self):
-        settings = QtCore.QSettings("AMNH", "DotDotGoose")
+        settings = QtCore.QSettings("Countmon", "Countmon")
         settings.setValue('locale', 'zh_Hans_CN')
         self.restart_message()
 
