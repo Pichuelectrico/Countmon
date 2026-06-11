@@ -139,13 +139,13 @@ class MainWindow(QtWidgets.QMainWindow):
         self._btn_left_panel = QtWidgets.QPushButton('◀  ' + self.tr('Left Panel'))
         self._btn_left_panel.setCheckable(True)
         self._btn_left_panel.setStyleSheet(btn_css)
-        self._btn_left_panel.setToolTip(self.tr('Hide / show left panel'))
+        self._btn_left_panel.setToolTip(self.tr('Hide / show left panel  [←]'))
         self._btn_left_panel.toggled.connect(self._toggle_left_panel)
 
         self._btn_right_panel = QtWidgets.QPushButton(self.tr('Right Panel') + '  ▶')
         self._btn_right_panel.setCheckable(True)
         self._btn_right_panel.setStyleSheet(btn_css)
-        self._btn_right_panel.setToolTip(self.tr('Hide / show right panel'))
+        self._btn_right_panel.setToolTip(self.tr('Hide / show right panel  [→]'))
         self._btn_right_panel.toggled.connect(self._toggle_right_panel)
 
         corner_layout.addWidget(self._btn_left_panel)

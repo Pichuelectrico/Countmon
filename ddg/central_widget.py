@@ -66,6 +66,10 @@ class CentralWidget(QtWidgets.QDialog, CLASS_DIALOG):
         self._shortcut(QtCore.Qt.Key.Key_Up, self.point_widget.previous)
         self._shortcut(QtCore.Qt.Key.Key_Down, self.point_widget.next)
 
+        # Left / Right arrows — toggle side panels
+        self._shortcut(QtCore.Qt.Key.Key_Left,  self._shortcut_toggle_left)
+        self._shortcut(QtCore.Qt.Key.Key_Right, self._shortcut_toggle_right)
+
         # T — new class dialog
         self._shortcut(QtCore.Qt.Key.Key_T, self.point_widget.add_class)
 
@@ -188,6 +192,23 @@ class CentralWidget(QtWidgets.QDialog, CLASS_DIALOG):
             self.frameCustomField.hide()
         else:
             self.frameCustomField.show()
+
+    def _shortcut_toggle_left(self):
+        """Called by ← shortcut — delegates to MainWindow button so its state stays in sync."""
+        mw = self.parent()
+        if mw is not None and hasattr(mw, '_btn_left_panel'):
+            mw._btn_left_panel.toggle()
+        else:
+            frame = self.findChild(QtWidgets.QFrame, 'framePointWidget')
+            self.toggle_left_panel(frame.isVisible())
+
+    def _shortcut_toggle_right(self):
+        """Called by → shortcut — delegates to MainWindow button so its state stays in sync."""
+        mw = self.parent()
+        if mw is not None and hasattr(mw, '_btn_right_panel'):
+            mw._btn_right_panel.toggle()
+        else:
+            self.toggle_right_panel(self.frameCustomField.isVisible())
 
     # ── Resize ─────────────────────────────────────────────────────────────
 
