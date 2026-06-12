@@ -9,3 +9,5 @@ doc/source/_build/
 __pycache__/
 setup.cfg
 releases/
+website/
+.DS_Store
