@@ -8,7 +8,9 @@ _Point data collected with Dot Target Counter will be very valuable training and
 
 ---
 
-> **Desarrollado por Joshua Reinoso**, estudiante de Ingeniería en Ciencias de la Computación de la Universidad San Francisco de Quito (USFQ).
+> **Desarrollado por Joshua Reinoso Cevallos**, estudiante de Ingeniería en Ciencias de la Computación de la Universidad San Francisco de Quito (USFQ).
+>
+> **Contribuidor principal:** Isaac Reinoso Cevallos, estudiante de Ingeniería en Biotecnología en la USFQ — visión y retroalimentación de la aplicación.
 >
 > Basado en [DotDotGoose](https://github.com/persts/DotDotGoose) — herramienta de conteo de código abierto desarrollada por el American Museum of Natural History.
 

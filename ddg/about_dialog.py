@@ -24,7 +24,7 @@
 # --------------------------------------------------------------------------
 import os
 import sys
-from PyQt6 import QtWidgets, QtCore, uic
+from PyQt6 import QtWidgets, QtCore, QtGui, uic
 from ddg import __version__
 
 # from .ui_central_widget import Ui_central as CLASS_DIALOG
@@ -48,14 +48,28 @@ class AboutDialog(QtWidgets.QDialog, CLASS_DIALOG):
 
         self.labelVersion.setText(__version__)
 
-        entry = QtWidgets.QLabel('Joshua Reinoso — {}'.format(
+        entry = QtWidgets.QLabel('Joshua Reinoso Cevallos — {}'.format(
             self.tr('Ingeniería en Ciencias de la Computación, USFQ')))
         font = entry.font()
         font.setPointSize(10)
         entry.setFont(font)
         self.groupBoxDevelopers.layout().addWidget(entry)
 
-        entry = QtWidgets.QLabel(self.tr('Basado en DotDotGoose — Peter J. Ersts, American Museum of Natural History'))
+        entry = QtWidgets.QLabel(
+            'Isaac Reinoso Cevallos — {}'.format(
+                self.tr('Ingeniería en Biotecnología, USFQ')))
+        entry.setFont(font)
+        self.groupBoxContributors.layout().addWidget(entry)
+
+        role_font = QtGui.QFont(font)
+        role_font.setPointSize(9)
+        entry = QtWidgets.QLabel(self.tr(
+            'Contribuidor principal — visión y retroalimentación de la aplicación'))
+        entry.setFont(role_font)
+        self.groupBoxContributors.layout().addWidget(entry)
+
+        entry = QtWidgets.QLabel(self.tr(
+            'Basado en DotDotGoose — Peter J. Ersts, American Museum of Natural History'))
         entry.setFont(font)
         self.groupBoxContributors.layout().addWidget(entry)
 
