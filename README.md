@@ -2,7 +2,7 @@
 
 **Dot Target Counter** is a free, open source tool to assist with manually counting objects in images.
 
-![Screen Shot](doc/source/example.png)
+![Screen Shot](doc/source/DTCexample.png)
 
 _Point data collected with Dot Target Counter will be very valuable training and validation data for any future efforts with computer assisted counting._
 
