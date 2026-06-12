@@ -26,7 +26,7 @@ from ddg.central_widget import CentralWidget
 from PyQt6 import QtWidgets, QtCore, QtGui
 from ddg.about_dialog import AboutDialog
 from ddg import __version__
-from ddg.dark_mode_palette import DarkModePalette, NavyModePalette, NatureGreenPalette, BiophilicLightPalette
+from ddg.dark_mode_palette import DarkModePalette, NavyModePalette, NatureGreenPalette, NightForestPalette, BiophilicLightPalette
 from ddg.biophilic_theme import BIOPHILIC_BASE_QSS
 
 
@@ -41,6 +41,8 @@ def apply_theme(name, app=None):
         app.setPalette(NavyModePalette())
     elif name == 'nature':
         app.setPalette(NatureGreenPalette())
+    elif name == 'night_forest':
+        app.setPalette(NightForestPalette())
     elif name == 'light':
         app.setPalette(BiophilicLightPalette())
     else:
@@ -91,11 +93,12 @@ class MainWindow(QtWidgets.QMainWindow):
         theme_group.setExclusive(True)
 
         themes = [
-            ('system', self.tr('System (default)')),
-            ('light',  self.tr('Light')),
-            ('dark',   self.tr('Dark')),
-            ('navy',   self.tr('Navy Blue')),
-            ('nature', self.tr('Nature Green')),
+            ('system',       self.tr('System (default)')),
+            ('light',        self.tr('Light')),
+            ('dark',         self.tr('Dark')),
+            ('navy',         self.tr('Navy Blue')),
+            ('nature',       self.tr('Nature Green')),
+            ('night_forest', self.tr('Night Forest')),
         ]
         settings = QtCore.QSettings("Countmon", "Countmon")
         current_theme = settings.value('theme', 'system')

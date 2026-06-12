@@ -66,14 +66,52 @@ def NavyModePalette():
 
 def NatureGreenPalette():
     p = QtGui.QPalette()
-    # Background tones — muted sage / forest greens
-    window      = QtGui.QColor(42,  58,  46)   # dark sage
-    base        = QtGui.QColor(52,  72,  56)   # slightly lighter sage
-    alt_base    = QtGui.QColor(36,  50,  40)   # darker sage for alternating rows
-    btn         = QtGui.QColor(60,  82,  64)   # button background
-    highlight   = QtGui.QColor(102, 170, 102)  # pastel green selection
-    text        = QtGui.QColor(220, 240, 220)  # near-white with green tint
-    dim_text    = QtGui.QColor(140, 170, 140)  # muted for placeholders / disabled
+    # Tonos claros y pastel — verde salvia suave
+    window    = QtGui.QColor(218, 234, 214)   # salvia pálido — fondo general
+    base      = QtGui.QColor(235, 246, 232)   # casi blanco verdoso — inputs/paneles
+    alt_base  = QtGui.QColor(208, 226, 204)   # filas alternas ligeramente más oscuras
+    btn       = QtGui.QColor(196, 220, 190)   # botones verde pastel suave
+    highlight = QtGui.QColor(82,  160, 100)   # verde medio vibrante — selección/foco
+    text      = QtGui.QColor(28,  55,  34)    # verde muy oscuro — legible sobre claro
+    dim_text  = QtGui.QColor(110, 145, 112)   # texto secundario / deshabilitado
+    border    = QtGui.QColor(168, 202, 164)   # borde verde pastel visible
+
+    p.setColor(QtGui.QPalette.ColorRole.Window,           window)
+    p.setColor(QtGui.QPalette.ColorRole.WindowText,       text)
+    p.setColor(QtGui.QPalette.ColorRole.Base,             base)
+    p.setColor(QtGui.QPalette.ColorRole.AlternateBase,    alt_base)
+    p.setColor(QtGui.QPalette.ColorRole.PlaceholderText,  dim_text)
+    p.setColor(QtGui.QPalette.ColorRole.Text,             text)
+    p.setColor(QtGui.QPalette.ColorRole.Button,           btn)
+    p.setColor(QtGui.QPalette.ColorRole.ButtonText,       text)
+    p.setColor(QtGui.QPalette.ColorRole.BrightText,       QtGui.QColor(180, 50, 40))
+    p.setColor(QtGui.QPalette.ColorRole.Highlight,        highlight)
+    p.setColor(QtGui.QPalette.ColorRole.HighlightedText,  QtGui.QColor(245, 255, 245))
+    p.setColor(QtGui.QPalette.ColorRole.Link,             QtGui.QColor(55, 130, 75))
+    p.setColor(QtGui.QPalette.ColorRole.Mid,              border)
+    p.setColor(QtGui.QPalette.ColorRole.Dark,             QtGui.QColor(155, 188, 150))
+    p.setColor(QtGui.QPalette.ColorRole.Shadow,           QtGui.QColor(120, 158, 115))
+    p.setColor(QtGui.QPalette.ColorRole.Midlight,         QtGui.QColor(245, 252, 243))
+    p.setColor(QtGui.QPalette.ColorRole.ToolTipBase,      QtGui.QColor(38, 68, 42))
+    p.setColor(QtGui.QPalette.ColorRole.ToolTipText,      QtGui.QColor(230, 248, 228))
+
+    p.setColor(QtGui.QPalette.ColorGroup.Disabled, QtGui.QPalette.ColorRole.WindowText, dim_text)
+    p.setColor(QtGui.QPalette.ColorGroup.Disabled, QtGui.QPalette.ColorRole.Text,       dim_text)
+    p.setColor(QtGui.QPalette.ColorGroup.Disabled, QtGui.QPalette.ColorRole.ButtonText, dim_text)
+    p.setColor(QtGui.QPalette.ColorGroup.Disabled, QtGui.QPalette.ColorRole.Highlight,  QtGui.QColor(148, 196, 158))
+    p.setColor(QtGui.QPalette.ColorGroup.Disabled, QtGui.QPalette.ColorRole.HighlightedText, dim_text)
+    return p
+
+
+def NightForestPalette():
+    p = QtGui.QPalette()
+    window    = QtGui.QColor(42,  58,  46)   # dark sage
+    base      = QtGui.QColor(52,  72,  56)   # slightly lighter sage
+    alt_base  = QtGui.QColor(36,  50,  40)   # darker sage for alternating rows
+    btn       = QtGui.QColor(60,  82,  64)   # button background
+    highlight = QtGui.QColor(102, 170, 102)  # pastel green selection
+    text      = QtGui.QColor(220, 240, 220)  # near-white with green tint
+    dim_text  = QtGui.QColor(140, 170, 140)  # muted for placeholders / disabled
 
     p.setColor(QtGui.QPalette.ColorRole.Window,           window)
     p.setColor(QtGui.QPalette.ColorRole.WindowText,       text)
@@ -87,8 +125,10 @@ def NatureGreenPalette():
     p.setColor(QtGui.QPalette.ColorRole.Highlight,        highlight)
     p.setColor(QtGui.QPalette.ColorRole.HighlightedText,  QtGui.QColor(20, 30, 20))
     p.setColor(QtGui.QPalette.ColorRole.Link,             QtGui.QColor(130, 200, 130))
+    p.setColor(QtGui.QPalette.ColorRole.Mid,              QtGui.QColor(72, 96, 76))
     p.setColor(QtGui.QPalette.ColorRole.Dark,             QtGui.QColor(28, 40, 30))
     p.setColor(QtGui.QPalette.ColorRole.Shadow,           QtGui.QColor(16, 24, 18))
+    p.setColor(QtGui.QPalette.ColorRole.Midlight,         QtGui.QColor(68, 90, 72))
     p.setColor(QtGui.QPalette.ColorRole.ToolTipBase,      btn)
     p.setColor(QtGui.QPalette.ColorRole.ToolTipText,      text)
 
@@ -106,8 +146,8 @@ def BiophilicLightPalette():
     panel        = QtGui.QColor(237, 232, 220)   # #EDE8DC arena suave
     alt_panel    = QtGui.QColor(228, 222, 208)   # ligeramente más oscuro
     btn          = QtGui.QColor(220, 213, 198)   # botones arena
-    moss         = QtGui.QColor(90,  122,  74)   # #5A7A4A musgo bosque
-    leaf         = QtGui.QColor(125, 171,  92)   # #7DAB5C verde hoja
+    sky          = QtGui.QColor(61,  114, 170)   # azul cielo medio — acento principal
+    sky_light    = QtGui.QColor(107, 163, 214)   # azul claro — highlight / selección
     text_dark    = QtGui.QColor(44,  36,  22)    # #2C2416 marrón cálido
     text_mid     = QtGui.QColor(107,  92,  62)   # #6B5C3E tierra media
     border_sand  = QtGui.QColor(200, 186, 160)   # #C8BAA0 arena borde
@@ -121,9 +161,9 @@ def BiophilicLightPalette():
     p.setColor(QtGui.QPalette.ColorRole.Button,           btn)
     p.setColor(QtGui.QPalette.ColorRole.ButtonText,       text_dark)
     p.setColor(QtGui.QPalette.ColorRole.BrightText,       QtGui.QColor(180, 60, 40))
-    p.setColor(QtGui.QPalette.ColorRole.Highlight,        leaf)
+    p.setColor(QtGui.QPalette.ColorRole.Highlight,        sky_light)
     p.setColor(QtGui.QPalette.ColorRole.HighlightedText,  QtGui.QColor(255, 255, 255))
-    p.setColor(QtGui.QPalette.ColorRole.Link,             moss)
+    p.setColor(QtGui.QPalette.ColorRole.Link,             sky)
     p.setColor(QtGui.QPalette.ColorRole.Dark,             border_sand)
     p.setColor(QtGui.QPalette.ColorRole.Shadow,           QtGui.QColor(160, 148, 128))
     p.setColor(QtGui.QPalette.ColorRole.Mid,              QtGui.QColor(210, 202, 186))
@@ -134,7 +174,7 @@ def BiophilicLightPalette():
     p.setColor(QtGui.QPalette.ColorGroup.Disabled, QtGui.QPalette.ColorRole.WindowText, text_mid)
     p.setColor(QtGui.QPalette.ColorGroup.Disabled, QtGui.QPalette.ColorRole.Text,       text_mid)
     p.setColor(QtGui.QPalette.ColorGroup.Disabled, QtGui.QPalette.ColorRole.ButtonText, text_mid)
-    p.setColor(QtGui.QPalette.ColorGroup.Disabled, QtGui.QPalette.ColorRole.Highlight,  QtGui.QColor(180, 200, 160))
+    p.setColor(QtGui.QPalette.ColorGroup.Disabled, QtGui.QPalette.ColorRole.Highlight,  QtGui.QColor(160, 195, 225))
     p.setColor(QtGui.QPalette.ColorGroup.Disabled, QtGui.QPalette.ColorRole.HighlightedText, text_mid)
     return p
 
