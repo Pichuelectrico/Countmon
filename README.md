@@ -36,3 +36,64 @@ python -m pip install -r ./DotDotGoose/requirements.txt
 cd DotDotGoose
 python3 main.py
 ```
+
+## Keyboard Shortcuts
+
+### Modes
+
+| Key | Action |
+|-----|--------|
+| `I` | Switch to **Counter** mode (click to place points) |
+| `O` | Switch to **Reviewer** mode (click to select/move points) |
+
+### Navigation
+
+| Key | Action |
+|-----|--------|
+| `↑` | Previous image |
+| `↓` | Next image |
+| `←` | Toggle left panel |
+| `→` | Toggle right panel |
+
+### Canvas Panning
+
+| Key | Action |
+|-----|--------|
+| `W` | Pan up |
+| `S` | Pan down |
+| `A` | Pan left |
+| `D` | Pan right |
+| Mouse wheel | Zoom in / zoom out |
+
+### Classes
+
+| Key | Action |
+|-----|--------|
+| `T` | Create a new class |
+| `1` – `9`, `0` | Select class slot 1–10 |
+
+### Points
+
+| Key | Action |
+|-----|--------|
+| `H` | Toggle point display |
+| `G` | Toggle grid overlay |
+| `R` | Relabel selected point(s) |
+| `Delete` / `Backspace` | Delete selected point(s) |
+
+### Mouse
+
+| Action | Effect |
+|--------|--------|
+| Left-click (Counter mode) | Place a point |
+| `Ctrl` + click | Place a point from any mode |
+| `Shift` + drag | Rubber-band select multiple points |
+| Click + drag | Pan the canvas |
+
+### File
+
+| Key | Action |
+|-----|--------|
+| `Ctrl + S` | Quick save |
+| `Ctrl + Z` | Undo |
+| `Ctrl + Y` | Redo |
