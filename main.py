@@ -1,20 +1,20 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
 #
-# Countmon
+# Dot Target Counter
 # Author: Peter Ersts (ersts@amnh.org)
 #
 # --------------------------------------------------------------------------
 #
-# This file is part of the Countmon application.
+# This file is part of the Dot Target Counter application.
 # Countmon is built on DotDotGoose (https://github.com/persts/DotDotGoose), which was forked from Nenetic.
 #
-# Countmon is free software: you can redistribute it and/or modify
+# Dot Target Counter is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
 #
-# Countmon is distributed in the hope that it will be useful,
+# Dot Target Counter is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
@@ -28,6 +28,7 @@ import sys
 from PyQt6 import QtWidgets, QtCore, QtGui
 from ddg import ExceptionHandler, MainWindow
 from ddg.main_window import apply_theme
+from ddg.workspace_dialog import WorkspaceDialog
 
 if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
@@ -56,7 +57,7 @@ if __name__ == "__main__":
     _font.setHintingPreference(QtGui.QFont.HintingPreference.PreferFullHinting)
     app.setFont(_font)
 
-    settings = QtCore.QSettings("Countmon", "Countmon")
+    settings = QtCore.QSettings("DotTargetCounter", "DotTargetCounter")
     apply_theme(settings.value("theme", "system"), app)
 
     translator = QtCore.QTranslator()
@@ -69,7 +70,13 @@ if __name__ == "__main__":
         if translator.load(QtCore.QLocale(), "ddg", "_", "i18n:/"):
             QtCore.QCoreApplication.installTranslator(translator)
 
-    main = MainWindow()
+    # Show workspace picker — closing the dialog (X) exits the app
+    workspace_dialog = WorkspaceDialog()
+    if workspace_dialog.exec() != QtWidgets.QDialog.DialogCode.Accepted:
+        sys.exit(0)
+    master_path = workspace_dialog.selected_path  # None = no-workspace mode
+
+    main = MainWindow(master_path=master_path)
     handler = ExceptionHandler()
     handler.exception.connect(main.display_exception)
     main.show()

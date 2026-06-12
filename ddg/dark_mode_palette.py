@@ -1,19 +1,19 @@
 # -*- coding: utf-8 -*-
 #
-# Countmon
+# Dot Target Counter
 # Author: Peter Ersts (ersts@amnh.org)
 #
 # --------------------------------------------------------------------------
 #
-# This file is part of the Countmon application.
+# This file is part of the Dot Target Counter application.
 # Countmon is built on DotDotGoose (https://github.com/persts/DotDotGoose), which was forked from Nenetic.
 #
-# Countmon is free software: you can redistribute it and/or modify
+# Dot Target Counter is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
 #
-# Countmon is distributed in the hope that it will be useful,
+# Dot Target Counter is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
@@ -99,6 +99,44 @@ def NatureGreenPalette():
     p.setColor(QtGui.QPalette.ColorGroup.Disabled, QtGui.QPalette.ColorRole.Text,       dim_text)
     p.setColor(QtGui.QPalette.ColorGroup.Disabled, QtGui.QPalette.ColorRole.ButtonText, dim_text)
     p.setColor(QtGui.QPalette.ColorGroup.Disabled, QtGui.QPalette.ColorRole.Highlight,  QtGui.QColor(148, 196, 158))
+    p.setColor(QtGui.QPalette.ColorGroup.Disabled, QtGui.QPalette.ColorRole.HighlightedText, dim_text)
+    return p
+
+
+def PokemonPalette():
+    p = QtGui.QPalette()
+    window    = QtGui.QColor(0xF4, 0xF4, 0xF2)  # #F4F4F2 gris clarísimo
+    base      = QtGui.QColor(0xF4, 0xF4, 0xF2)  # #F4F4F2 igual que window
+    alt_base  = QtGui.QColor(0xEE, 0xEE, 0xEC)  # ligeramente más gris para filas alternas
+    btn       = QtGui.QColor(0xE5, 0x39, 0x35)  # #E53935 rojo Pokéball
+    highlight = QtGui.QColor(0x4F, 0xC3, 0xD7)  # #4FC3D7 cyan agua
+    text      = QtGui.QColor(0x1F, 0x1F, 0x1F)  # #1F1F1F casi negro
+    dim_text  = QtGui.QColor(0xAA, 0xAA, 0xAA)  # gris medio para deshabilitados
+    border    = QtGui.QColor(0xCC, 0xCC, 0xCC)  # borde gris suave
+
+    p.setColor(QtGui.QPalette.ColorRole.Window,           window)
+    p.setColor(QtGui.QPalette.ColorRole.WindowText,       text)
+    p.setColor(QtGui.QPalette.ColorRole.Base,             base)
+    p.setColor(QtGui.QPalette.ColorRole.AlternateBase,    alt_base)
+    p.setColor(QtGui.QPalette.ColorRole.PlaceholderText,  dim_text)
+    p.setColor(QtGui.QPalette.ColorRole.Text,             text)
+    p.setColor(QtGui.QPalette.ColorRole.Button,           btn)
+    p.setColor(QtGui.QPalette.ColorRole.ButtonText,       QtGui.QColor(0xE8, 0xE8, 0xE8))
+    p.setColor(QtGui.QPalette.ColorRole.BrightText,       QtGui.QColor(0xFF, 0xFF, 0xFF))
+    p.setColor(QtGui.QPalette.ColorRole.Highlight,        highlight)
+    p.setColor(QtGui.QPalette.ColorRole.HighlightedText,  text)
+    p.setColor(QtGui.QPalette.ColorRole.Link,             highlight)
+    p.setColor(QtGui.QPalette.ColorRole.Mid,              border)
+    p.setColor(QtGui.QPalette.ColorRole.Dark,             QtGui.QColor(0xBB, 0xBB, 0xBB))
+    p.setColor(QtGui.QPalette.ColorRole.Shadow,           QtGui.QColor(0x99, 0x99, 0x99))
+    p.setColor(QtGui.QPalette.ColorRole.Midlight,         QtGui.QColor(0xFA, 0xFA, 0xFA))
+    p.setColor(QtGui.QPalette.ColorRole.ToolTipBase,      QtGui.QColor(0x1F, 0x1F, 0x1F))
+    p.setColor(QtGui.QPalette.ColorRole.ToolTipText,      QtGui.QColor(0xFF, 0xFF, 0xFF))
+
+    p.setColor(QtGui.QPalette.ColorGroup.Disabled, QtGui.QPalette.ColorRole.WindowText, dim_text)
+    p.setColor(QtGui.QPalette.ColorGroup.Disabled, QtGui.QPalette.ColorRole.Text,       dim_text)
+    p.setColor(QtGui.QPalette.ColorGroup.Disabled, QtGui.QPalette.ColorRole.ButtonText, QtGui.QColor(0xFF, 0xAA, 0xAA))
+    p.setColor(QtGui.QPalette.ColorGroup.Disabled, QtGui.QPalette.ColorRole.Highlight,  QtGui.QColor(0xA8, 0xE0, 0xEB))
     p.setColor(QtGui.QPalette.ColorGroup.Disabled, QtGui.QPalette.ColorRole.HighlightedText, dim_text)
     return p
 

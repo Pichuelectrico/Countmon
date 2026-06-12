@@ -29,7 +29,7 @@
         </font>
        </property>
        <property name="text">
-        <string>DotDotGoose</string>
+        <string>Dot Target Counter</string>
        </property>
        <property name="alignment">
         <set>Qt::AlignCenter</set>
@@ -59,7 +59,7 @@
         </font>
        </property>
        <property name="text">
-        <string>American Museum of Natural History</string>
+        <string>Universidad San Francisco de Quito (USFQ)</string>
        </property>
        <property name="alignment">
         <set>Qt::AlignCenter</set>
@@ -74,7 +74,7 @@
         </font>
        </property>
        <property name="text">
-        <string>Center for Biodiversity and Conservation</string>
+        <string>Ingeniería en Ciencias de la Computación</string>
        </property>
        <property name="alignment">
         <set>Qt::AlignCenter</set>

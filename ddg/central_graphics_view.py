@@ -1,19 +1,19 @@
 # -*- coding: utf-8 -*-
 #
-# Countmon
+# Dot Target Counter
 # Author: Peter Ersts (ersts@amnh.org)
 #
 # --------------------------------------------------------------------------
 #
-# This file is part of the Countmon application.
+# This file is part of the Dot Target Counter application.
 # Countmon is built on DotDotGoose (https://github.com/persts/DotDotGoose), which was forked from Nenetic.
 #
-# Countmon is free software: you can redistribute it and/or modify
+# Dot Target Counter is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
 #
-# Countmon is distributed in the hope that it will be useful,
+# Dot Target Counter is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
@@ -38,6 +38,7 @@ class CentralGraphicsView(QtWidgets.QGraphicsView):
     toggle_grid = QtCore.pyqtSignal()
     switch_class = QtCore.pyqtSignal(int)
     mode_changed = QtCore.pyqtSignal(str)
+    deselect_class = QtCore.pyqtSignal()
 
     def __init__(self, parent=None):
         QtWidgets.QGraphicsView.__init__(self, parent)
@@ -47,13 +48,19 @@ class CentralGraphicsView(QtWidgets.QGraphicsView):
         self.ctrl = False
         self.alt = False
         self.delay = 0
-        self.mode = 'reviewer'
-        self.setViewportUpdateMode(QtWidgets.QGraphicsView.ViewportUpdateMode.FullViewportUpdate)
+        self.mode = "reviewer"
+        self.setViewportUpdateMode(
+            QtWidgets.QGraphicsView.ViewportUpdateMode.FullViewportUpdate
+        )
         self.setCursor(QtCore.Qt.CursorShape.ArrowCursor)
+
+        # Right-click pan state
+        self._rclick_pan = False
+        self._rclick_origin = QtCore.QPoint()
 
     def set_mode(self, mode):
         self.mode = mode
-        if mode == 'counter':
+        if mode == "counter":
             self.setCursor(QtCore.Qt.CursorShape.CrossCursor)
         else:
             self.setCursor(QtCore.Qt.CursorShape.ArrowCursor)
@@ -74,7 +81,9 @@ class CentralGraphicsView(QtWidgets.QGraphicsView):
 
     def image_loaded(self, directory, file_name):
         self.resetTransform()
-        self.fitInView(self.scene().itemsBoundingRect(), QtCore.Qt.AspectRatioMode.KeepAspectRatio)
+        self.fitInView(
+            self.scene().itemsBoundingRect(), QtCore.Qt.AspectRatioMode.KeepAspectRatio
+        )
         self.setSceneRect(self.scene().itemsBoundingRect())
 
     def keyPressEvent(self, event):
@@ -85,6 +94,8 @@ class CentralGraphicsView(QtWidgets.QGraphicsView):
             self.ctrl = True
         elif key == QtCore.Qt.Key.Key_Shift:
             self.shift = True
+        elif key == QtCore.Qt.Key.Key_Escape:
+            self.deselect_class.emit()
         elif key == QtCore.Qt.Key.Key_Delete or key == QtCore.Qt.Key.Key_Backspace:
             self.delete_selection.emit()
         elif key == QtCore.Qt.Key.Key_R:
@@ -94,9 +105,9 @@ class CentralGraphicsView(QtWidgets.QGraphicsView):
         elif key == QtCore.Qt.Key.Key_G:
             self.toggle_grid.emit()
         elif key == QtCore.Qt.Key.Key_I:
-            self.set_mode('counter')
+            self.set_mode("counter")
         elif key == QtCore.Qt.Key.Key_O:
-            self.set_mode('reviewer')
+            self.set_mode("reviewer")
         elif key == QtCore.Qt.Key.Key_W:
             v = self.verticalScrollBar().value()
             self.verticalScrollBar().setValue(v - PAN_STEP)
@@ -139,10 +150,30 @@ class CentralGraphicsView(QtWidgets.QGraphicsView):
             self.shift = False
 
     def mouseMoveEvent(self, event):
+        if self._rclick_pan:
+            delta = event.pos() - self._rclick_origin
+            self._rclick_origin = event.pos()
+            self.horizontalScrollBar().setValue(
+                self.horizontalScrollBar().value() - delta.x()
+            )
+            self.verticalScrollBar().setValue(
+                self.verticalScrollBar().value() - delta.y()
+            )
+            event.accept()
+            return
         QtWidgets.QGraphicsView.mouseMoveEvent(self, event)
 
     def mousePressEvent(self, event):
-        if self.mode == 'counter' and event.button() == QtCore.Qt.MouseButton.LeftButton:
+        if event.button() == QtCore.Qt.MouseButton.RightButton:
+            self._rclick_pan = True
+            self._rclick_origin = event.pos()
+            self.setCursor(QtCore.Qt.CursorShape.ClosedHandCursor)
+            event.accept()
+            return
+        if (
+            self.mode == "counter"
+            and event.button() == QtCore.Qt.MouseButton.LeftButton
+        ):
             self.add_point.emit(self.mapToScene(event.pos()))
         elif self.ctrl:
             # Backward-compatible Ctrl+click to place points from any mode
@@ -155,6 +186,15 @@ class CentralGraphicsView(QtWidgets.QGraphicsView):
             QtWidgets.QGraphicsView.mousePressEvent(self, event)
 
     def mouseReleaseEvent(self, event):
+        if event.button() == QtCore.Qt.MouseButton.RightButton and self._rclick_pan:
+            self._rclick_pan = False
+            self.setCursor(
+                QtCore.Qt.CursorShape.CrossCursor
+                if self.mode == "counter"
+                else QtCore.Qt.CursorShape.ArrowCursor
+            )
+            event.accept()
+            return
         if self.dragMode() == QtWidgets.QGraphicsView.DragMode.RubberBandDrag:
             rect = self.rubberBandRect()
             self.region_selected.emit(self.mapToScene(rect).boundingRect())
@@ -168,7 +208,10 @@ class CentralGraphicsView(QtWidgets.QGraphicsView):
         vsb = self.verticalScrollBar().isVisible()
         hsb = self.horizontalScrollBar().isVisible()
         if not (vsb or hsb):
-            self.fitInView(self.scene().itemsBoundingRect(), QtCore.Qt.AspectRatioMode.KeepAspectRatio)
+            self.fitInView(
+                self.scene().itemsBoundingRect(),
+                QtCore.Qt.AspectRatioMode.KeepAspectRatio,
+            )
             self.setSceneRect(self.scene().itemsBoundingRect())
 
     def wheelEvent(self, event):

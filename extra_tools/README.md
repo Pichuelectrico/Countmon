@@ -1,12 +1,12 @@
-# Countmon - Extra Tools
+# Dot Target Counter - Extra Tools
 
-> **Origin:** Countmon is built on top of [DotDotGoose](https://github.com/persts/DotDotGoose), an open source image counting tool developed by the American Museum of Natural History. We use DotDotGoose as our base and extend it to fit our own needs.
+> **Origin:** Dot Target Counter is built on top of [DotDotGoose](https://github.com/persts/DotDotGoose), an open source image counting tool developed by the American Museum of Natural History. We use DotDotGoose as our base and extend it to fit our own needs.
 
 ---
 
 ## Export Geographic Coordinates
 
-By default, Countmon stores coordinates in pixel coordinates. If your images are georeferenced you can use the `export_geographic.py` script to transform the pixel coordinates into geographic coordinates.
+By default, Dot Target Counter stores coordinates in pixel coordinates. If your images are georeferenced you can use the `export_geographic.py` script to transform the pixel coordinates into geographic coordinates.
 
 For this script to work your images must be GeoTiffs or tifs, jpgs, pngs with associated world files (`.tfw`, `.jgw`, `.pgw` respectively).
 
@@ -38,7 +38,7 @@ and follow the prompts.
 
 There is an undocumented feature, still under development, that allows you to use the Labelme software to delineate polygons to define counting areas on individual images when you have considerable overlap between images in your project.
 
-If your images are georeferenced and you have polygon layers that denote your counting boundary, you can use the `geojson_to_annotation.py` script to convert those polygons into a format that Countmon can consume.
+If your images are georeferenced and you have polygon layers that denote your counting boundary, you can use the `geojson_to_annotation.py` script to convert those polygons into a format that Dot Target Counter can consume.
 
 For this script to work your images must be GeoTiffs or tifs, jpgs, pngs with associated world files (`.tfw`, `.jgw`, `.pgw` respectively). Currently, the script assumes that your images and exported (GeoJSON) polygons are in the same coordinate system.
 

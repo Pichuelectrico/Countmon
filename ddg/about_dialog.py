@@ -1,19 +1,19 @@
 # -*- coding: utf-8 -*-
 #
-# Countmon
+# Dot Target Counter
 # Author: Peter Ersts (ersts@amnh.org)
 #
 # --------------------------------------------------------------------------
 #
-# This file is part of the Countmon application.
+# This file is part of the Dot Target Counter application.
 # Countmon is built on DotDotGoose (https://github.com/persts/DotDotGoose), which was forked from Nenetic.
 #
-# Countmon is free software: you can redistribute it and/or modify
+# Dot Target Counter is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
 #
-# Countmon is distributed in the hope that it will be useful,
+# Dot Target Counter is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
@@ -48,21 +48,14 @@ class AboutDialog(QtWidgets.QDialog, CLASS_DIALOG):
 
         self.labelVersion.setText(__version__)
 
-        entry = QtWidgets.QLabel('Peter J. Ersts, {}'.format(self.tr('Center for Biodiversity and Conservation')))
+        entry = QtWidgets.QLabel('Joshua Reinoso — {}'.format(
+            self.tr('Ingeniería en Ciencias de la Computación, USFQ')))
         font = entry.font()
         font.setPointSize(10)
         entry.setFont(font)
         self.groupBoxDevelopers.layout().addWidget(entry)
 
-        entry = QtWidgets.QLabel('Ido Senesh, https://github.com/idoadse')
-        entry.setFont(font)
-        self.groupBoxContributors.layout().addWidget(entry)
-
-        entry = QtWidgets.QLabel('Julie Young, https://github.com/julieyoung6')
-        entry.setFont(font)
-        self.groupBoxContributors.layout().addWidget(entry)
-
-        entry = QtWidgets.QLabel('Ștefan Istrate, https://github.com/stefanistrate')
+        entry = QtWidgets.QLabel(self.tr('Basado en DotDotGoose — Peter J. Ersts, American Museum of Natural History'))
         entry.setFont(font)
         self.groupBoxContributors.layout().addWidget(entry)
 

@@ -1,19 +1,19 @@
 # -*- coding: utf-8 -*-
 #
-# Countmon
+# Dot Target Counter
 # Author: Peter Ersts (ersts@amnh.org)
 #
 # --------------------------------------------------------------------------
 #
-# This file is part of the Countmon application.
+# This file is part of the Dot Target Counter application.
 # Countmon is built on DotDotGoose (https://github.com/persts/DotDotGoose), which was forked from Nenetic.
 #
-# Countmon is free software: you can redistribute it and/or modify
+# Dot Target Counter is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
 #
-# Countmon is distributed in the hope that it will be useful,
+# Dot Target Counter is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
@@ -53,6 +53,8 @@ class Canvas(QtWidgets.QGraphicsScene):
         self.redo_queue = []
         self.undo_queue = []
         self.ui = {'grid': {'size': 200, 'color': [255, 255, 255]}, 'point': {'radius': 25, 'color': [255, 255, 0]}}
+
+        self.notes = {}
 
         self.survey_id = ''
 
@@ -454,6 +456,8 @@ class Canvas(QtWidgets.QGraphicsScene):
             self.ui = {'grid': {'size': 200, 'color': [255, 255, 255]}, 'point': {'radius': 25, 'color': [255, 255, 0]}}
         # End Backward compat
 
+        self.notes = data.get('notes', {})
+
         self.colors = data['colors']
         self.classes = data['classes']
         self.coordinates = data['metadata']['coordinates']
@@ -475,7 +479,7 @@ class Canvas(QtWidgets.QGraphicsScene):
 
     def package_points(self):
         count = 0
-        package = {'classes': [], 'points': {}, 'colors': {}, 'metadata': {'survey_id': self.survey_id, 'coordinates': self.coordinates}, 'custom_fields': self.custom_fields, 'ui': self.ui}
+        package = {'classes': [], 'points': {}, 'colors': {}, 'metadata': {'survey_id': self.survey_id, 'coordinates': self.coordinates}, 'custom_fields': self.custom_fields, 'ui': self.ui, 'notes': self.notes}
         package['classes'] = self.classes
         for class_name in self.colors:
             r = self.colors[class_name].red()
@@ -572,6 +576,7 @@ class Canvas(QtWidgets.QGraphicsScene):
         self.undo_queue = []
         self.coordinates = {}
         self.custom_fields = {'fields': [], 'data': {}}
+        self.notes = {}
 
         self.clear()
         self.directory = ''
@@ -621,6 +626,14 @@ class Canvas(QtWidgets.QGraphicsScene):
                 self.coordinates[self.current_image_name] = {'x': '', 'y': ''}
             self.coordinates[self.current_image_name]['x'] = x
             self.coordinates[self.current_image_name]['y'] = y
+
+    def get_note(self, image_name):
+        return self.notes.get(image_name, {}).get('comment', '')
+
+    def save_note(self, comment):
+        if self.current_image_name is not None:
+            self.notes[self.current_image_name] = {'comment': comment}
+            self.dirty = True
 
     def save_custom_field_data(self, field, data):
         if self.current_image_name is not None:

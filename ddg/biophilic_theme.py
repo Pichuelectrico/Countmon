@@ -19,6 +19,7 @@ QWidget {
 /* ── MenuBar ─────────────────────────────────────────────────────────── */
 QMenuBar {
     background-color: palette(window);
+    color: palette(window-text);
     border-bottom: 1px solid palette(mid);
     padding: 1px 4px;
     spacing: 2px;
@@ -26,6 +27,7 @@ QMenuBar {
 }
 QMenuBar::item {
     background: transparent;
+    color: palette(window-text);
     padding: 4px 10px;
     border-radius: 5px;
 }
@@ -41,6 +43,7 @@ QMenuBar::item:pressed {
 /* ── Menu (dropdown) ─────────────────────────────────────────────────── */
 QMenu {
     background-color: palette(base);
+    color: palette(window-text);
     border: 1px solid palette(mid);
     border-radius: 8px;
     padding: 4px;
@@ -49,6 +52,7 @@ QMenu::item {
     padding: 5px 24px 5px 12px;
     border-radius: 5px;
     background: transparent;
+    color: palette(window-text);
 }
 QMenu::item:selected {
     background-color: palette(highlight);
