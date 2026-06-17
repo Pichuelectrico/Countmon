@@ -23,16 +23,12 @@
 #
 # --------------------------------------------------------------------------
 import os
-import sys
 from PyQt6 import QtCore, QtGui, QtWidgets, uic
 
+from .bundle import ui_bundle_dir
 from .chip_dialog import ChipDialog
 
-if getattr(sys, "frozen", False):
-    bundle_dir = sys._MEIPASS
-else:
-    bundle_dir = os.path.dirname(__file__)
-WIDGET, _ = uic.loadUiType(os.path.join(bundle_dir, "point_widget.ui"))
+WIDGET, _ = uic.loadUiType(os.path.join(ui_bundle_dir(), "point_widget.ui"))
 
 # Column indices
 COL_NUM = 0  # # shortcut number (read-only)

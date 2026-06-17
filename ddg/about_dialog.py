@@ -23,16 +23,12 @@
 #
 # --------------------------------------------------------------------------
 import os
-import sys
 from PyQt6 import QtWidgets, QtCore, QtGui, uic
 from ddg import __version__
+from ddg.bundle import ui_bundle_dir
 
 # from .ui_central_widget import Ui_central as CLASS_DIALOG
-if getattr(sys, 'frozen', False):
-    bundle_dir = sys._MEIPASS
-else:
-    bundle_dir = os.path.dirname(__file__)
-CLASS_DIALOG, _ = uic.loadUiType(os.path.join(bundle_dir, 'about_dialog.ui'))
+CLASS_DIALOG, _ = uic.loadUiType(os.path.join(ui_bundle_dir(), 'about_dialog.ui'))
 
 
 class AboutDialog(QtWidgets.QDialog, CLASS_DIALOG):

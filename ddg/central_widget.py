@@ -23,18 +23,15 @@
 #
 # --------------------------------------------------------------------------
 import os
-import sys
 from PyQt6 import QtCore, QtWidgets, QtGui, uic
 
 from ddg import Canvas
 from ddg import PointWidget
+from ddg.bundle import ui_bundle_dir
 from ddg.fields import BoxText, LineText
+import ddg.central_graphics_view  # noqa: F401 — custom widget in central_widget.ui
 
-if getattr(sys, "frozen", False):
-    bundle_dir = sys._MEIPASS
-else:
-    bundle_dir = os.path.dirname(__file__)
-CLASS_DIALOG, _ = uic.loadUiType(os.path.join(bundle_dir, "central_widget.ui"))
+CLASS_DIALOG, _ = uic.loadUiType(os.path.join(ui_bundle_dir(), "central_widget.ui"))
 
 
 class CentralWidget(QtWidgets.QDialog, CLASS_DIALOG):

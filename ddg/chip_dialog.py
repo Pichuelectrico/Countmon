@@ -23,17 +23,13 @@
 #
 # --------------------------------------------------------------------------
 import os
-import sys
 
 from .exporter import Exporter
+from .bundle import ui_bundle_dir
 
 from PyQt6 import QtCore, QtWidgets, QtGui, uic
 
-if getattr(sys, 'frozen', False):
-    bundle_dir = sys._MEIPASS
-else:
-    bundle_dir = os.path.dirname(__file__)
-CLASS_DIALOG, _ = uic.loadUiType(os.path.join(bundle_dir, 'chip_dialog.ui'))
+CLASS_DIALOG, _ = uic.loadUiType(os.path.join(ui_bundle_dir(), 'chip_dialog.ui'))
 
 
 class ChipDialog(QtWidgets.QDialog, CLASS_DIALOG):

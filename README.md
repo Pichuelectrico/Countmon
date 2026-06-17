@@ -28,6 +28,8 @@ Dot Target Counter is developed with the following libraries:
 
 ## Installation
 
+### Option 1 — Python virtual environment
+
 ```bash
 git clone https://github.com/joshuareinoso/Countmon
 cd Countmon
@@ -37,10 +39,40 @@ python -m pip install --upgrade pip
 python -m pip install -r requirements.txt
 ```
 
+### Option 2 — Conda environment
+
+```bash
+git clone https://github.com/joshuareinoso/Countmon
+cd Countmon
+conda env create -f conda_setup/environment.yml
+conda activate biotec
+```
+
 ## Launching Dot Target Counter
 
 ```bash
 python3 main.py
+```
+
+## Building a macOS release
+
+Prerequisites:
+
+- Conda environment `biotec` (see Option 2 above) with PyInstaller installed
+- Qt translation tools for `lrelease` (e.g. `brew install qt`)
+
+Build the `.app` bundle:
+
+```bash
+./releases/build_mac.sh
+```
+
+The release is written to `releases/Dot Target Counter.app`.
+
+To test from the terminal:
+
+```bash
+releases/Dot\ Target\ Counter.app/Contents/MacOS/Dot\ Target\ Counter
 ```
 
 ## Keyboard Shortcuts
