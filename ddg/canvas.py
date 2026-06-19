@@ -206,7 +206,14 @@ class Canvas(QtWidgets.QGraphicsScene):
                     else:
                         self.addEllipse(QtCore.QRectF(point.x() - ((display_radius - 1) / 2), point.y() - ((display_radius - 1) / 2), display_radius, display_radius), pen, brush)
 
-    def export_counts(self, file_name):
+    @staticmethod
+    def _csv_field(value):
+        text = str(value)
+        if ',' in text or '"' in text or '\n' in text or '\r' in text:
+            return '"' + text.replace('"', '""') + '"'
+        return text
+
+    def export_counts(self, file_name, include_notes=False):
         if self.current_image_name is not None:
             file = open(file_name, 'w')
             output = self.tr('survey id,image')
@@ -215,6 +222,8 @@ class Canvas(QtWidgets.QGraphicsScene):
             output += ",x,y"
             for field_name, _ in self.custom_fields['fields']:
                 output += ',{}'.format(field_name)
+            if include_notes:
+                output += ',' + self.tr('notes')
             output += '\n'
             file.write(output)
             for image in self.points:
@@ -234,6 +243,9 @@ class Canvas(QtWidgets.QGraphicsScene):
                         output += ',{}'.format(self.custom_fields['data'][field_name][image])
                     else:
                         output += ','
+                if include_notes:
+                    note = self.notes.get(image, {}).get('comment', '')
+                    output += ',' + self._csv_field(note)
                 output += "\n"
                 file.write(output)
             file.close()

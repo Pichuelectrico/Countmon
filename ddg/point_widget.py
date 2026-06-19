@@ -27,6 +27,7 @@ from PyQt6 import QtCore, QtGui, QtWidgets, uic
 
 from .bundle import ui_bundle_dir
 from .chip_dialog import ChipDialog
+from .collapsible_section import CollapsibleSection
 
 WIDGET, _ = uic.loadUiType(os.path.join(ui_bundle_dir(), "point_widget.ui"))
 
@@ -134,6 +135,121 @@ class PointWidget(QtWidgets.QWidget, WIDGET):
         self.checkBoxImageFields.hide()
         self.horizontalSliderBrightness.valueChanged.connect(self.set_brightness)
         self.horizontalSliderContrast.valueChanged.connect(self.set_contrast)
+
+        self._setup_collapsible_controls()
+
+    def _setup_collapsible_controls(self):
+        """Wrap lower panel controls in collapsible cards to save vertical space."""
+        frame = self.frameControls
+        old_layout = self.gridLayout_4
+
+        for line_name in ("line_3", "line_2", "line"):
+            line = getattr(self, line_name, None)
+            if line is not None:
+                old_layout.removeWidget(line)
+                line.hide()
+
+        old_layout.removeWidget(self.groupBox)
+        self.groupBox.setTitle("")
+        enhance_section = CollapsibleSection(
+            self.tr("Enhance Image"),
+            self.groupBox,
+            collapsed=True,
+        )
+
+        display_item = old_layout.itemAtPosition(3, 0)
+        if display_item is not None:
+            old_layout.removeItem(display_item)
+        display_widget = QtWidgets.QWidget()
+        display_widget.setLayout(self.gridLayout_3)
+        display_section = CollapsibleSection(
+            self.tr("Point & Grid"),
+            display_widget,
+            collapsed=True,
+        )
+
+        for button in (
+            self.pushButtonLoadPoints,
+            self.pushButtonSave,
+            self.pushButtonImport,
+            self.pushButtonReset,
+        ):
+            old_layout.removeWidget(button)
+
+        file_widget = QtWidgets.QWidget()
+        file_layout = QtWidgets.QGridLayout(file_widget)
+        file_layout.setContentsMargins(8, 4, 8, 4)
+        file_layout.setHorizontalSpacing(8)
+        file_layout.setVerticalSpacing(6)
+        file_layout.addWidget(self.pushButtonLoadPoints, 0, 0)
+        file_layout.addWidget(self.pushButtonSave, 0, 1)
+        file_layout.addWidget(self.pushButtonImport, 1, 0)
+        file_layout.addWidget(self.pushButtonReset, 1, 1)
+        file_section = CollapsibleSection(
+            self.tr("Load / Save"),
+            file_widget,
+            collapsed=True,
+        )
+
+        old_layout.removeWidget(self.pushButtonExport)
+        export_item = old_layout.itemAtPosition(9, 0)
+        if export_item is not None:
+            old_layout.removeItem(export_item)
+        radio_widget = QtWidgets.QWidget()
+        radio_widget.setLayout(self.gridLayout_2)
+        export_widget = QtWidgets.QWidget()
+        export_layout = QtWidgets.QHBoxLayout(export_widget)
+        export_layout.setContentsMargins(8, 4, 8, 4)
+        export_layout.setSpacing(8)
+        export_layout.addWidget(radio_widget, 1)
+        export_layout.addWidget(self.pushButtonExport)
+
+        old_layout.removeWidget(self.checkBoxImageFields)
+
+        controls_layout = QtWidgets.QVBoxLayout()
+        controls_layout.setContentsMargins(4, 4, 4, 4)
+        controls_layout.setSpacing(6)
+        controls_layout.addWidget(self.checkBoxImageFields)
+        controls_layout.addWidget(enhance_section)
+        controls_layout.addWidget(display_section)
+        controls_layout.addWidget(file_section)
+        controls_layout.addWidget(export_widget)
+        controls_layout.addStretch(1)
+
+        old_holder = QtWidgets.QWidget()
+        old_holder.setLayout(old_layout)
+        old_holder.hide()
+        frame.setLayout(controls_layout)
+
+    def _ask_export_counts_options(self):
+        dlg = QtWidgets.QDialog(self)
+        dlg.setWindowTitle(self.tr("Export Count Summary"))
+        dlg.setMinimumWidth(340)
+        layout = QtWidgets.QVBoxLayout(dlg)
+        layout.setSpacing(12)
+        layout.setContentsMargins(16, 16, 16, 16)
+        layout.addWidget(
+            QtWidgets.QLabel(
+                self.tr("Do you want to include image notes in the CSV file?")
+            )
+        )
+        include_notes = QtWidgets.QCheckBox(self.tr("Include image notes"))
+        include_notes.setChecked(False)
+        layout.addWidget(include_notes)
+        btn_row = QtWidgets.QHBoxLayout()
+        btn_row.setSpacing(8)
+        btn_cancel = QtWidgets.QPushButton(self.tr("Cancel"))
+        btn_export = QtWidgets.QPushButton(self.tr("Export"))
+        btn_export.setDefault(True)
+        btn_cancel.clicked.connect(dlg.reject)
+        btn_export.clicked.connect(dlg.accept)
+        btn_row.addStretch()
+        btn_row.addWidget(btn_cancel)
+        btn_row.addWidget(btn_export)
+        layout.addLayout(btn_row)
+        if dlg.exec() != QtWidgets.QDialog.DialogCode.Accepted:
+            return None
+        return include_notes.isChecked()
 
     # ── Class list ─────────────────────────────────────────────────────────
 
@@ -354,6 +470,9 @@ class PointWidget(QtWidgets.QWidget, WIDGET):
 
     def export(self):
         if self.radioButtonCounts.isChecked():
+            include_notes = self._ask_export_counts_options()
+            if include_notes is None:
+                return
             fn = QtWidgets.QFileDialog.getSaveFileName(
                 self,
                 self.tr("Export Count Summary"),
@@ -361,7 +480,7 @@ class PointWidget(QtWidgets.QWidget, WIDGET):
                 "Text CSV (*.csv)",
             )
             if fn[0]:
-                self.canvas.export_counts(fn[0])
+                self.canvas.export_counts(fn[0], include_notes=include_notes)
         elif self.radioButtonPoints.isChecked():
             fn = QtWidgets.QFileDialog.getSaveFileName(
                 self,
