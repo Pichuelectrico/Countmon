@@ -137,6 +137,12 @@ class PointWidget(QtWidgets.QWidget, WIDGET):
         self.horizontalSliderContrast.valueChanged.connect(self.set_contrast)
 
         self._setup_collapsible_controls()
+        self.installEventFilter(self)
+
+    def eventFilter(self, obj, event):
+        if obj is self and event.type() == QtCore.QEvent.Type.Resize:
+            self._refresh_panel_layout()
+        return super().eventFilter(obj, event)
 
     def _setup_collapsible_controls(self):
         """Wrap lower panel controls in collapsible cards to save vertical space."""
@@ -177,19 +183,18 @@ class PointWidget(QtWidgets.QWidget, WIDGET):
             old_layout.removeWidget(button)
 
         file_widget = QtWidgets.QWidget()
-        file_layout = QtWidgets.QGridLayout(file_widget)
+        file_layout = QtWidgets.QVBoxLayout(file_widget)
         file_layout.setContentsMargins(8, 4, 8, 4)
-        file_layout.setHorizontalSpacing(8)
-        file_layout.setVerticalSpacing(6)
-        file_layout.addWidget(self.pushButtonLoadPoints, 0, 0)
-        file_layout.addWidget(self.pushButtonSave, 0, 1)
-        file_layout.addWidget(self.pushButtonImport, 1, 0)
-        file_layout.addWidget(self.pushButtonReset, 1, 1)
-        file_section = CollapsibleSection(
-            self.tr("Load / Save"),
-            file_widget,
-            collapsed=True,
-        )
+        file_layout.setSpacing(8)
+
+        button_grid = QtWidgets.QGridLayout()
+        button_grid.setHorizontalSpacing(8)
+        button_grid.setVerticalSpacing(6)
+        button_grid.addWidget(self.pushButtonLoadPoints, 0, 0)
+        button_grid.addWidget(self.pushButtonSave, 0, 1)
+        button_grid.addWidget(self.pushButtonImport, 1, 0)
+        button_grid.addWidget(self.pushButtonReset, 1, 1)
+        file_layout.addLayout(button_grid)
 
         old_layout.removeWidget(self.pushButtonExport)
         export_item = old_layout.itemAtPosition(9, 0)
@@ -197,12 +202,17 @@ class PointWidget(QtWidgets.QWidget, WIDGET):
             old_layout.removeItem(export_item)
         radio_widget = QtWidgets.QWidget()
         radio_widget.setLayout(self.gridLayout_2)
-        export_widget = QtWidgets.QWidget()
-        export_layout = QtWidgets.QHBoxLayout(export_widget)
-        export_layout.setContentsMargins(8, 4, 8, 4)
-        export_layout.setSpacing(8)
-        export_layout.addWidget(radio_widget, 1)
-        export_layout.addWidget(self.pushButtonExport)
+        export_row = QtWidgets.QHBoxLayout()
+        export_row.setSpacing(8)
+        export_row.addWidget(radio_widget, 1)
+        export_row.addWidget(self.pushButtonExport)
+        file_layout.addLayout(export_row)
+
+        file_section = CollapsibleSection(
+            self.tr("Load / Save / Export"),
+            file_widget,
+            collapsed=True,
+        )
 
         old_layout.removeWidget(self.checkBoxImageFields)
 
@@ -213,13 +223,49 @@ class PointWidget(QtWidgets.QWidget, WIDGET):
         controls_layout.addWidget(enhance_section)
         controls_layout.addWidget(display_section)
         controls_layout.addWidget(file_section)
-        controls_layout.addWidget(export_widget)
-        controls_layout.addStretch(1)
 
         old_holder = QtWidgets.QWidget()
         old_holder.setLayout(old_layout)
         old_holder.hide()
         frame.setLayout(controls_layout)
+
+        frame.setSizePolicy(
+            QtWidgets.QSizePolicy.Policy.Preferred,
+            QtWidgets.QSizePolicy.Policy.Minimum,
+        )
+        self.verticalLayout_3.setStretch(0, 1)
+        self.verticalLayout_3.setStretch(1, 0)
+
+        for section in (enhance_section, display_section, file_section):
+            section.toggled.connect(self._refresh_panel_layout)
+
+        QtCore.QTimer.singleShot(0, self._refresh_panel_layout)
+
+    def _refresh_panel_layout(self):
+        """Give all spare height to Classes/Summary; controls hug the bottom."""
+        margins = self.verticalLayout_3.contentsMargins()
+        controls_h = self.frameControls.minimumSizeHint().height()
+        available = (
+            self.height()
+            - margins.top()
+            - margins.bottom()
+            - self.verticalLayout_3.spacing()
+            - controls_h
+        )
+        if available < 80:
+            available = 80
+        sizes = self.splitter.sizes()
+        total = sum(sizes)
+        if total <= 0:
+            self.splitter.setSizes([available // 2, available // 2])
+            return
+        self.splitter.setSizes(
+            [
+                max(40, int(available * sizes[0] / total)),
+                max(40, int(available * sizes[1] / total)),
+            ]
+        )
+        self.frameControls.updateGeometry()
 
     def _ask_export_counts_options(self):
         dlg = QtWidgets.QDialog(self)

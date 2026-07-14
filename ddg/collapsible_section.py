@@ -5,9 +5,15 @@ from PyQt6 import QtCore, QtWidgets
 class CollapsibleSection(QtWidgets.QWidget):
     """Accordion-style section with a clickable header and arrow toggle."""
 
+    toggled = QtCore.pyqtSignal(bool)
+
     def __init__(self, title, content_widget, parent=None, collapsed=False):
         super().__init__(parent)
         self._content = content_widget
+        self.setSizePolicy(
+            QtWidgets.QSizePolicy.Policy.Preferred,
+            QtWidgets.QSizePolicy.Policy.Minimum,
+        )
 
         layout = QtWidgets.QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
@@ -53,3 +59,5 @@ class CollapsibleSection(QtWidgets.QWidget):
             if expanded
             else QtCore.Qt.ArrowType.RightArrow
         )
+        self.updateGeometry()
+        self.toggled.emit(expanded)
