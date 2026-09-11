@@ -1,0 +1,143 @@
+name: Build Release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build (${{ matrix.artifact_name }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-latest
+            platform: mac
+            artifact_name: Dot-Target-Counter-macOS-arm64
+          - os: windows-latest
+            platform: win
+            artifact_name: Dot-Target-Counter-Windows-x64
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt pyinstaller
+
+      - name: Prepare macOS icon (.icns)
+        if: matrix.platform == 'mac'
+        run: |
+          if [ ! -f icons/logo_countmon.icns ]; then
+            mkdir -p /tmp/countmon.iconset
+            sips -z 16 16     icons/logo_countmon.png --out /tmp/countmon.iconset/icon_16x16.png
+            sips -z 32 32     icons/logo_countmon.png --out /tmp/countmon.iconset/icon_16x16@2x.png
+            sips -z 32 32     icons/logo_countmon.png --out /tmp/countmon.iconset/icon_32x32.png
+            sips -z 64 64     icons/logo_countmon.png --out /tmp/countmon.iconset/icon_32x32@2x.png
+            sips -z 128 128   icons/logo_countmon.png --out /tmp/countmon.iconset/icon_128x128.png
+            sips -z 256 256   icons/logo_countmon.png --out /tmp/countmon.iconset/icon_128x128@2x.png
+            sips -z 256 256   icons/logo_countmon.png --out /tmp/countmon.iconset/icon_256x256.png
+            sips -z 512 512   icons/logo_countmon.png --out /tmp/countmon.iconset/icon_256x256@2x.png
+            sips -z 512 512   icons/logo_countmon.png --out /tmp/countmon.iconset/icon_512x512.png
+            sips -z 1024 1024 icons/logo_countmon.png --out /tmp/countmon.iconset/icon_512x512@2x.png
+            iconutil -c icns /tmp/countmon.iconset -o icons/logo_countmon.icns
+          fi
+
+      - name: Prepare Windows icon (.ico)
+        if: matrix.platform == 'win'
+        shell: bash
+        run: |
+          python - <<'PY'
+          from PIL import Image
+          img = Image.open("icons/logo_countmon.png")
+          img.save(
+              "icons/logo_countmon.ico",
+              sizes=[(16, 16), (32, 32), (48, 48), (64, 64), (128, 128), (256, 256)],
+          )
+          PY
+
+      - name: Build with PyInstaller (macOS)
+        if: matrix.platform == 'mac'
+        run: |
+          pyinstaller \
+            --windowed \
+            --name "Dot Target Counter" \
+            --icon "icons/logo_countmon.icns" \
+            --add-data "icons:icons" \
+            --add-data "i18n:i18n" \
+            --add-data "ddg/about_dialog.ui:ddg" \
+            --add-data "ddg/central_widget.ui:ddg" \
+            --add-data "ddg/chip_dialog.ui:ddg" \
+            --add-data "ddg/point_widget.ui:ddg" \
+            --distpath "dist" \
+            --workpath "build" \
+            --specpath "build" \
+            --clean \
+            main.py
+
+          ditto -c -k --sequesterRsrc --keepParent \
+            "dist/Dot Target Counter.app" \
+            "dist/${{ matrix.artifact_name }}.zip"
+
+      - name: Build with PyInstaller (Windows)
+        if: matrix.platform == 'win'
+        shell: pwsh
+        run: |
+          pyinstaller `
+            --windowed `
+            --name "Dot Target Counter" `
+            --icon "icons/logo_countmon.ico" `
+            --add-data "icons;icons" `
+            --add-data "i18n;i18n" `
+            --add-data "ddg/about_dialog.ui;ddg" `
+            --add-data "ddg/central_widget.ui;ddg" `
+            --add-data "ddg/chip_dialog.ui;ddg" `
+            --add-data "ddg/point_widget.ui;ddg" `
+            --distpath "dist" `
+            --workpath "build" `
+            --specpath "build" `
+            --clean `
+            main.py
+
+          Compress-Archive `
+            -Path "dist\Dot Target Counter" `
+            -DestinationPath "dist\${{ matrix.artifact_name }}.zip"
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact_name }}
+          path: dist/${{ matrix.artifact_name }}.zip
+          if-no-files-found: error
+
+  release:
+    name: Publish GitHub Release
+    needs: build
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Create release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: artifacts/**/*.zip
+          generate_release_notes: true
+          fail_on_unmatched_files: true
